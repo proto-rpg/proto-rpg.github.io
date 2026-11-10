@@ -564,7 +564,7 @@ const KILLS=l=>l<=120?12+KA*l*l:KB+(l-120)*KC;
 const expNeed=l=>{const st=Math.max(1,l/2);return Math.floor(KILLS(l)*(5*Math.pow(1.22,st-1)+st*3));};
 /* 장비: 몬스터가 떨어뜨리면 인벤토리로 들어온다. 같은 장비라도 능력치가 다르게 굴려진다 */
 const GRADE=[{n:'일반',m:1,c:'#e9eef0',w:70,o:0},{n:'레어',m:1.18,c:'#6fb8ff',w:23,o:1},{n:'유니크',m:1.4,c:'#c78bff',w:6,o:2},{n:'전설',m:1.7,c:'#ffb347',w:1,o:3}];
-const DROP={mob:0.006,mini:0.6,fin:1},PITY=140,POTDROP=0.02,BAGMAX=40;
+const DROP={mob:0.01,mini:0.6,fin:1},PITY=100,POTDROP=0.02,BAGMAX=40;
 const TIERN=['초보자','가죽','기사','진홍','화염','강철','수정','자수정','심연'].concat(WPRE);
 const SLOT={wpn:{slot:'무기',stat:'공격력',v:t=>WEAPONS[t].atk},
  hat:{slot:'모자',noun:'투구',ico:'gear0',stat:'최대 체력',v:t=>50*Math.pow(1.4,t)},
@@ -608,6 +608,11 @@ function equipItem(it){if(S.lv<iLv(it))return false;const i=S.bag.indexOf(it);if
 function salvage(it){const i=S.bag.indexOf(it);if(i<0)return 0;S.bag.splice(i,1);const v=salvVal(it);S.gold+=v;return v;}
 function amplify(it){if(it.amp>=AMPMAX||S.gold<ampCost(it))return null;S.gold-=ampCost(it);const ok2=Math.random()*100<AMPP[it.amp];if(ok2)it.amp++;return ok2;}
 function reroll(it){if(!it.g||S.gold<rerollCost(it))return false;S.gold-=rerollCost(it);it.o=rollOpts(it.g);return true;}
+const shopTiers=()=>WEAPONS.map((w,i)=>i).filter(i=>WEAPONS[i].lv<=S.lv).slice(-2).reverse();
+const shopItem=(k,t)=>({id:0,k,t,g:0,q:1,amp:0,o:[]});
+const shopPrice=t=>Math.round(tierGold(t)*300+150);
+function shopBuy(k,t){t=+t;if(!shopTiers().includes(t)||!SLOT[k])return false;const it=shopItem(k,t),cur=S.eq[k],c=shopPrice(t);
+  if(S.gold<c||S.bag.length>=BAGMAX||(cur&&iScore(it)<=iScore(cur)))return false;S.gold-=c;it.id=++S.iid;gainItem(it);return true;}
 function gainItem(it){
   if(it.k==='wpn'&&!(S.dex[it.t]>=it.g))S.dex[it.t]=it.g;
   const cur=S.eq[it.k],nm=`${GRADE[it.g].n} ${iName(it)}`,c=GRADE[it.g].c;
@@ -1599,7 +1604,11 @@ function renderPanel(){
     DUNG.forEach((d,i)=>{const lock=i>S.maxDg,cur=i===S.dg;
       h+=`<div class="item"><div><div class="name">${d.name} <span class="lbl">권장 ${d.lv}레벨</span></div><div class="sub">${lock?'이전 던전 최종 보스를 잡으면 열려요':`최고 Stage ${i===S.dg?S.stage:(S.prog[i]||1)}/10`}</div></div>
       <button class="btn ${cur?'':'gold'}" data-act="dg" data-k="${i}" ${lock||cur||mode==='boss'?'disabled':''}>${cur?'현재 위치':lock?'잠김':'이동'}</button></div>`;});
-    h+=`<div class="sec">포션 상점</div>
+    h+=`<div class="row"><div class="sec">상점</div><div class="pts">${kor(S.gold)} G</div></div><div class="lbl" style="margin:.4cqh 0">일반 등급 장비</div>
+    <p class="note">내 레벨에 맞는 일반 등급 장비를 팔아요. 지금 낀 장비보다 좋은 것만 살 수 있고, 사면 바로 장착돼요. 더 높은 등급은 사냥과 보스에서 나와요.</p>
+    ${shopTiers().map(t=>`<div class="grid2">${SLK.map(k=>{const it=shopItem(k,t),cur=S.eq[k],up=!cur||iScore(it)>iScore(cur),pr=shopPrice(t);return `<div class="item${up?'':' unown'}"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${iIcon(it)}.webp" alt="" style="height:6.4cqh"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${iName(it)} <span class="lbl">Lv.${iLv(it)}</span></div><div class="sub">${SLOT[k].stat} +${kor(iMain(it))}${SLOT[k].pct?'%':''}</div></div></div>
+      ${up?`<button class="btn gold" data-act="buygear" data-k="${k}" data-n="${t}" ${S.gold<pr||S.bag.length>=BAGMAX?'disabled':''}>${kor(pr)}G</button>`:'<span class="lbl">착용 장비가 더 좋음</span>'}</div>`;}).join('')}</div>`).join('<div style="height:1cqh"></div>')}
+    <div class="lbl" style="margin:1cqh 0 .4cqh">포션</div>
     <p class="note">가지고 있으면 자동으로 써요. 체력은 35% 아래로 떨어질 때, 마나는 스킬을 쓸 마나가 모자랄 때예요. 사냥 중에는 작은 것부터, 보스전에서는 큰 것부터 써요.</p>
     <div class="grid2">${HPK.concat(MPK).map(k=>{const T=POT[k],pr=potP(k);return `<div class="item"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/gear5.webp" alt="" style="height:${T.h>=1?8:T.h>=0.5?6.6:5.2}cqh${T.hp?'':';filter:hue-rotate(215deg) saturate(1.4)'}"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${T.n}</div><div class="sub">${Math.round(T.h*100)}% 회복 · 보유 ${S[k]||0}개</div></div></div>
       <div style="display:flex;gap:1cqh;flex:none"><button class="btn" data-act="buy" data-k="${k}" data-n="1" ${S.gold<pr?'disabled':''}>${kor(pr)}G</button><button class="btn gold" data-act="buy" data-k="${k}" data-n="10" ${S.gold<pr*10?'disabled':''}>×10</button></div></div>`;}).join('')}</div>
@@ -1672,6 +1681,7 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='ireroll'){const it=findItem(UI.sel);if(it&&reroll(it))sfx('pot');}
   else if(a==='isalv'){const it=findItem(UI.sel);if(it){const v=salvage(it);if(v){UI.sel=0;flash(`분해 +${kor(v)}G`,'#f2c14e');}}}
   else if(a==='salvN'){let v=0;S.bag.filter(x=>x.g===0).forEach(x=>v+=salvage(x));if(v)flash(`일반 장비 분해 +${kor(v)}G`,'#f2c14e');}
+  else if(a==='buygear'){if(shopBuy(k,b.dataset.n))sfx('loot');}
   else if(a==='buy'&&POT[k]){const n=+b.dataset.n||1,c=potP(k)*n;if(S.gold>=c){S.gold-=c;S[k]=(S[k]||0)+n;sfx('click');}}
   else if(a==='quest')claimQuest();
   else if(a==='bsize'){S.opt.bs=+k;applyOpt();}
