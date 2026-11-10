@@ -397,7 +397,12 @@ function fit(){const r=cv.getBoundingClientRect(),d=Math.min(2,window.devicePixe
   cv.width=Math.round(W*d);cv.height=Math.round(H*d);cx.setTransform(cv.width/W,0,0,cv.height/H,0,0);}
 /* 화면 맞춤: 뷰어가 넣는 여백과 상관없이, 실제 보이는 창 크기를 재서 16:9 화면을 최대로 키워 가운데에 고정한다 */
 function layoutStage(){const st=document.getElementById('stage'),pr=document.getElementById('saProbe'),vp=document.getElementById('vpProbe');if(!st||!vp)return;
-  const r=vp.getBoundingClientRect(),vw=r.width||window.innerWidth,vh=r.height||window.innerHeight,cs=getComputedStyle(pr),il=parseFloat(cs.paddingLeft)||0,ir=parseFloat(cs.paddingRight)||0;
+  const r=vp.getBoundingClientRect(),vw=r.width||window.innerWidth,cs=getComputedStyle(pr),il=parseFloat(cs.paddingLeft)||0,ir=parseFloat(cs.paddingRight)||0;
+  let vh=r.height||window.innerHeight;
+  /* 아이폰 홈 화면 앱(가로)은 창 높이를 실제보다 짧게 알려줘 아래에 검은 띠가 남는다 → 기기의 실제 짧은 변 길이로 바로잡는다 */
+  const sa=(navigator.standalone===true)||(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||(window.matchMedia&&matchMedia('(display-mode: fullscreen)').matches);
+  if(sa&&vw>vh&&window.screen){const sh=Math.min(screen.width,screen.height);if(sh>vh&&sh<vh+140)vh=sh;}
+  {const sb=document.getElementById('sideBg');if(sb){sb.style.height=Math.ceil(vh*1.08)+'px';sb.style.bottom='auto';}}
   const aw=vw-il-ir,ra=aw/vh;let w,h;
   if(ra>=1.6&&ra<=1.95){w=aw;h=vh;}            /* 16:9에 가까운 화면은 살짝 늘려 꽉 채움 */
   else{w=Math.max(120,Math.min(aw,vh*16/9));h=w*9/16;}
