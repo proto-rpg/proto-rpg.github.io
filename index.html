@@ -272,6 +272,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 /* 점프는 오른쪽 버튼으로 옮겼으므로 왼쪽은 좌·우·아래만 */
 #sideBg{position:fixed;z-index:-1;inset:-4%;background:#0b0a1e center/cover no-repeat;filter:blur(10px) brightness(.5) saturate(1.1);pointer-events:none}
 .stage.wide{overflow:visible}
+.stage.wide #modal{left:calc(var(--sx,0px)*-1);right:calc(var(--sxr,0px)*-1)}
 /* 넓은 화면의 양옆: 배경 그림을 거울처럼 뒤집어 이어 붙여 풍경이 끊기지 않게 한다 (노치 쪽 끝까지) */
 #sideL,#sideR{display:none;position:absolute;top:0;height:100%;background-repeat:no-repeat;background-size:var(--sw,100%) 100%;transform:scaleX(-1);pointer-events:none}
 .stage.wide #sideL{display:block;right:100%;width:var(--sx,0px);background-position:left top}
@@ -317,6 +318,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .mis em{background:linear-gradient(#ffe36b,#ffb52a);color:var(--ink);border:.3cqh solid #fff0a6;box-shadow:0 .4cqh 0 #b96a08}
 /* 알림 카드 · 캐릭터 선택 · 안내 */
 .card{background:linear-gradient(var(--pn1),var(--pn2));border:.45cqh solid var(--trim);border-radius:3cqh;box-shadow:0 0 0 .35cqh #2a1c54,0 2cqh 6cqh rgba(0,0,0,.6)}
+.stry{display:flex;align-items:center;gap:2.4cqh;text-align:left}.stry img{height:24cqh;width:auto;flex:none;filter:drop-shadow(0 .6cqh .8cqh rgba(0,0,0,.5))}.stry p{font-size:2.9cqh;line-height:1.65}
 .card h2{color:#ffe08a;text-shadow:0 .3cqh 0 rgba(0,0,0,.5)}
 .card button{background:linear-gradient(#ffe36b,#ffb52a);border:1px solid #fff0a6;border-bottom:.6cqh solid #b96a08;color:var(--ink)}
 .sel{background:radial-gradient(ellipse at 50% 28%,rgba(78,62,160,.96),rgba(13,11,34,.98) 72%)}
@@ -517,7 +519,7 @@ const KEYOF=ch=>ch==='vera'?KEY:KEY+'-'+ch;
 function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
 function def(ch){ch=ch||'vera';const sk={};CLS[ch].sk.forEach(s=>sk[s.id]=0);sk.b0=1;
   return{ch,lv:1,exp:0,gold:0,sp:0,kp:0,st:{str:4,dex:4,int:4,luk:4,vit:4},iid:5,eq:{wpn:{id:1,k:'wpn',t:0,g:0,q:1,amp:0,o:[]},hat:{id:2,k:'hat',t:0,g:0,q:1,amp:0,o:[]},armor:{id:3,k:'armor',t:0,g:0,q:1,amp:0,o:[]},glove:{id:4,k:'glove',t:0,g:0,q:1,amp:0,o:[]},shoe:{id:5,k:'shoe',t:0,g:0,q:1,amp:0,o:[]}},bag:[],dex:{0:0},heroes:[],team:[],tr:{},autoEq:true,autoSalv:false,enh:{},pity:0,stage:1,kills:0,
-  tk:0,bw:0,bf:null,ttl:[],ttlOn:'',potions:3,autoPot:true,autoSkill:true,job:0,sk,dg:0,maxDg:0,prog:[1,1,1,1,1,1,1,1,1,1],q:{n:0,need:30,no:1},clear:false,last:Date.now(),
+  tk:0,bw:0,bf:null,ttl:[],ttlOn:'',mq:{ch:0,st:0,n:0,pro:0},potions:3,autoPot:true,autoSkill:true,job:0,sk,dg:0,maxDg:0,prog:[1,1,1,1,1,1,1,1,1,1],q:{n:0,need:30,no:1},clear:false,last:Date.now(),
   opt:{dmg:true,shake:true,pad:true,banner:true,cutin:true,sfx:true,sfxV:70,bgm:true,bgmV:45,bs:1,bo:100,pos:{},
     keys:{left:'arrowleft',right:'arrowright',jump:' ',down:'arrowdown',atk:'z',strike:'q',whirl:'e',s3:'r',s4:'t',boss:'b'}}};}
 function summary(ch){try{return JSON.parse(lsGet(KEYOF(ch))||'null');}catch(e){return null;}}
@@ -647,6 +649,37 @@ function train(k,n){const T=TRN.find(t=>t.k===k);let c=0;while(c<n&&trLv(k)<trCa
 const defAll=()=>eqStat('방어력')+trLv('def')*1.5;
 const power=()=>Math.round(baseAtk()*(1+pas('atkPct'))*(1+critRate()*(0.6+pas('critDmg')+optSum('critDmg')))*3+maxHp()*0.5+defAll()*12);
 const qRw=()=>Math.max(150*S.q.no,Math.round(mobStat(gs()).gold*40));
+/* ---------- 스토리 · 메인 퀘스트 ----------
+   10년 전 마왕에게 패해 힘을 잃은 네 영웅이, 열 곳에 흩어진 힘의 조각을 되찾아 다시 마왕을 쓰러뜨리는 이야기.
+   던전 하나가 한 장이고, 장마다 퀘스트 3개(몬스터 처치 → 중간 보스 → 수호자)를 순서대로 깬다. */
+const STORY=[
+ {t:'잃어버린 힘',a:'평화롭던 숲의 짐승들이 마기에 물들어 사나워졌다. 숲 가장 깊은 곳에서 익숙한 기운이 느껴진다. 첫 번째 힘의 조각이다.',z:'수호자가 쓰러지자 빛나는 조각이 몸속으로 스며든다. 잊고 있던 기술이 손끝에 되살아난다. 아직 아홉 조각이 남았다.'},
+ {t:'어둠 속의 빛',a:'숲 아래로 이어진 동굴. 빛나는 이끼 사이로 마기가 스며 나온다. 10년 전, 패배한 기사단이 숨어들었던 바로 그 길이다.',z:'동굴 벽에서 기사단의 낡은 깃발을 찾았다. "반드시 돌아온다." 그날 남긴 약속이 아직 그대로 적혀 있다.'},
+ {t:'메마른 땅',a:'마왕이 강을 말려 버린 뒤로 협곡에는 모래바람만 분다. 살아남은 상인들이 길을 막은 괴물을 물리쳐 달라고 부탁한다.',z:'수호자가 쓰러지자 협곡 바닥에서 물이 다시 솟는다. 사람들이 영웅의 이름을 다시 부르기 시작했다.'},
+ {t:'얼어붙은 맹세',a:'끝없는 눈보라 속에 기사단의 옛 전초 기지가 묻혀 있다. 네 번째 조각은 그 얼음 아래에서 잠들어 있다.',z:'전초 기지의 봉화에 다시 불이 붙었다. 멀리서도 보이는 저 불빛은 흩어진 동료들에게 보내는 신호다.'},
+ {t:'가라앉은 왕국',a:'마왕의 첫 공격에 바다 밑으로 가라앉은 왕국. 물속 궁전에는 아직도 그날의 종소리가 울린다.',z:'힘의 절반을 되찾았다. 이제 마왕도 눈치챘을 것이다. 수면 위로 검은 번개가 내리친다.'},
+ {t:'불의 시련',a:'마왕의 군단이 무기를 벼리는 화산. 여기서부터는 길목마다 마왕의 정예가 지키고 있다.',z:'용암 속에서 건진 조각은 뜨겁게 달아올라 있었다. 예전의 힘을 넘어 새로운 경지가 열린다.'},
+ {t:'구름 위의 길',a:'마왕성은 구름 위에 떠 있다. 하늘 정원은 그곳으로 오르는 단 하나의 길이다.',z:'정원 끝에서 마왕성이 처음으로 눈에 들어온다. 10년 전 그날과 똑같은 검은 탑이다.'},
+ {t:'봉인의 기록',a:'유적에는 아득한 옛날 마왕을 봉인했던 영웅들의 기록이 남아 있다. 마왕을 쓰러뜨릴 방법이 여기 있을지 모른다.',z:'기록의 마지막 줄. "마왕은 빼앗은 힘으로 버틴다. 조각을 모두 되찾으면 그는 무너진다." 남은 조각은 둘.'},
+ {t:'마지막 관문',a:'빛이 들지 않는 숲. 이곳에서 쓰러진 자들의 그림자가 길을 막아선다. 그중에는 10년 전의 나도 있다.',z:'과거의 그림자를 베어 넘겼다. 그날의 패배가 더는 두렵지 않다. 마왕성의 문이 열린다.'},
+ {t:'다시, 마왕 앞에',a:'10년을 돌아 다시 이 문 앞에 섰다. 이번에는 혼자가 아니고, 그때보다 강하다.',z:'마왕이 쓰러지고 마지막 조각이 돌아온다. 검은 구름이 걷히고 열 곳의 땅에 아침이 온다. 영웅의 이야기는 이제 전설이 된다.'}];
+const MQN=[30,40,50,60,70,80,90,100,110,120],MQG=[3,5,12],MQP=[2,3,5];
+function mqFix(){if(!S.mq||typeof S.mq.ch!=='number')S.mq={ch:0,st:0,n:0,pro:0};return S.mq;}
+const mqStage=c=>S.dg===c?S.stage:(S.prog[c]||1);
+function mqDone(){const q=mqFix(),c=q.ch;if(c>=STORY.length)return false;const past=S.maxDg>c;
+  return q.st===0?(past||q.n>=MQN[c]):q.st===1?(past||mqStage(c)>5):(c===STORY.length-1?!!S.end:past);}
+function mqGoal(){const q=mqFix(),c=q.ch,d=DUNG[c].name;
+  return q.st===0?[`${d} 몬스터 처치 ${Math.min(q.n,MQN[c])} / ${MQN[c]}`,Math.min(1,q.n/MQN[c])]:q.st===1?[`${d} Stage 5 중간 보스 처치`,Math.min(1,(mqStage(c)-1)/5)]:[c===STORY.length-1?'마왕 처치 (마왕성 Stage 10)':`${d}의 수호자 처치 (Stage 10)`,Math.min(1,(mqStage(c)-1)/10)];}
+const mqRw=()=>{const q=mqFix();return [qRw()*MQG[q.st],MQP[q.st]];};
+function storyCard(title,text,btn){return `<h2>${title}</h2><div class="stry"><img src="assets/${S.ch}.webp" alt=""><p>${text}</p></div><button>${btn||'계속'}</button>`;}
+const storyIntro=c=>()=>storyCard(`${c+1}장 · ${STORY[c].t}`,STORY[c].a+`<br><span class="lbl">${DUNG[c].name} · 권장 ${DUNG[c].lv}레벨</span>`,'출발');
+const storyOutro=c=>()=>storyCard(`${c+1}장 완료 · ${STORY[c].t}`,STORY[c].z);
+const storyPro=()=>storyCard('프롤로그 · 10년 전','별빛 기사단의 네 영웅 베라, 엘레나, 유나, 카이는 마왕에게 도전했다가 패했다. 마왕은 영웅들의 힘을 열 조각으로 쪼개 열 곳의 땅에 흩어 놓았다.<br><br>힘을 잃고 깨어난 곳은 햇살 숲. 조각을 지키는 수호자들을 쓰러뜨려 힘을 되찾고, 다시 마왕성으로 가자.');
+const storyEnd=()=>storyCard('에필로그 · 돌아온 영웅','열 조각이 모두 제자리로 돌아왔다. 하지만 마왕이 사라진 땅에도 지켜야 할 것은 남아 있다. 영웅의 여정은 계속된다.','끝');
+function mqClaim(){const q=mqFix();if(!mqDone())return false;const [g,pt]=mqRw(),c=q.ch;S.gold+=g;S.potions+=pt;sfx('loot');
+  flash(`메인 퀘스트 완료! +${kor(g)}G · 포션 ${pt}개`,'#ffe08a');
+  if(q.st<2){q.st++;}else{q.ch++;q.st=0;q.n=0;queueModal(storyOutro(c));queueModal(q.ch<STORY.length?storyIntro(q.ch):storyEnd);}
+  dirty=true;save();return true;}
 function claimQuest(){if(S.q.n<S.q.need)return;const rw=qRw();S.gold+=rw;S.potions+=3;S.q.no++;S.q.n=0;S.q.need=Math.min(300,S.q.need+20);sfx('lvl');flash(`퀘스트 완료! +${kor(rw)}G · 포션 3개`,'#f2c14e');dirty=true;}
 function autoEquipAll(){let n=0;for(const k of SLK){const best=S.bag.filter(x=>x.k===k&&S.lv>=iLv(x)).sort((a,b)=>iScore(b)-iScore(a))[0];if(best&&(!S.eq[k]||iScore(best)>iScore(S.eq[k]))&&equipItem(best))n++;}return n;}
 const stageOf=i=>{const n=Math.max(1,Math.ceil(WEAPONS[i].lv/2));return `${DUNG[Math.min(DUNG.length-1,Math.floor((n-1)/10))].name} Stage ${(n-1)%10+1}`;};
@@ -826,7 +859,7 @@ function hit(t,r,col){
   if(S.opt.dmg)addText((r.c?'★':'')+kor(r.d),tx+(Math.random()*16-8),stackY(t,ty),col||(r.c?'#ffcf4a':'#fff'),r.c);
   if(t.hp<=0){
     if(isB)return endBoss(true);
-    t.dead=true;sfx('kill');S.tk=(S.tk||0)+1;combo++;comboT=3;comboP=0.18;if(fx.length<70)fx.push({coin:1,x:t.x,y:F[t.f].y-22,t:0.55,m:0.55});
+    t.dead=true;sfx('kill');S.tk=(S.tk||0)+1;if(S.mq&&S.mq.st===0&&S.mq.ch===S.dg)S.mq.n++;combo++;comboT=3;comboP=0.18;if(fx.length<70)fx.push({coin:1,x:t.x,y:F[t.f].y-22,t:0.55,m:0.55});
     const g=Math.round(t.gold*goldMul());S.gold+=g;gainExp(t.exp);if(S.kills<10)S.kills++;
     if(S.q.n<S.q.need)S.q.n++;
     tryDrop('mob',t.x,F[t.f].y-24);
@@ -1433,6 +1466,12 @@ function renderPanel(){
       ${S.heroes.length?'':'<span class="sub" style="grid-column:span 6">아직 동료가 없어요. 10레벨에 첫 동료가 합류하고, 골드로 영웅을 뽑을 수 있어요.</span>'}</div>
       <p class="note">동료는 평소 사냥에는 나오지 않고 <b>보스 스테이지에서만</b> 함께 싸워요. 배치 슬롯은 ${HSLOT.join(' · ')}레벨에 하나씩 열려요. 뽑기 값은 지금 스테이지에 따라 올라요.</p>`;
   }else{
+    h+=`<div class="row"><div class="sec">스토리 · 메인 퀘스트</div><button class="btn" data-act="uitog" data-k="story">${UI.story?'접기 ▲':'전체 보기 ▼'}</button></div>`;
+    {const q=mqFix(),fin=q.ch>=STORY.length;
+     if(fin)h+=`<p class="note">모든 장을 끝냈어요. 마왕을 쓰러뜨린 영웅의 이야기가 전설로 남았어요.</p>`;
+     else{const ok=mqDone(),[gt]=mqGoal(),[rg,rpn]=mqRw();h+=`<div class="item" style="border-color:var(--gold)"><div style="min-width:0"><div class="name" style="color:#ffe08a">${q.ch+1}장 · ${STORY[q.ch].t} <span class="lbl">(${q.st+1}/3)</span></div><div class="sub">${gt} · 보상 ${kor(rg)}G + 포션 ${rpn}개</div></div><button class="btn gold" data-act="mq" ${ok?'':'disabled'}>${ok?'보상 받기':'진행 중'}</button></div>
+       <p class="note">${STORY[q.ch].a}</p>`;}
+     if(UI.story)h+=STORY.map((c,i)=>`<div class="item${i>q.ch?' unown':''}"><div style="min-width:0"><div class="name">${i+1}장 · ${i<=q.ch?c.t:'???'} <span class="lbl">${DUNG[i].name}</span></div><div class="sub">${i<q.ch?c.z:i===q.ch&&!fin?'진행 중':'아직 열리지 않은 이야기'}</div></div><span class="lbl">${i<q.ch?'완료':i===q.ch?'진행 중':'잠김'}</span></div>`).join('');}
     h+=`<div class="sec">던전 이동</div>`;
     DUNG.forEach((d,i)=>{const lock=i>S.maxDg,cur=i===S.dg;
       h+=`<div class="item"><div><div class="name">${d.name} <span class="lbl">권장 ${d.lv}레벨</span></div><div class="sub">${lock?'이전 던전 최종 보스를 잡으면 열려요':`최고 Stage ${i===S.dg?S.stage:(S.prog[i]||1)}/10`}</div></div>
@@ -1440,7 +1479,8 @@ function renderPanel(){
     h+=`<div class="sec">포션 상점</div>
     <div class="item"><div style="display:flex;align-items:center;gap:2cqh"><img src="assets/gear5.webp" alt="" style="height:7cqh"><div><div class="name">체력 포션 <span class="lbl">보유 ${S.potions}개</span></div><div class="sub">최대 체력의 50% 회복 · 몬스터도 가끔 떨어뜨려요</div></div></div>
     <div style="display:flex;gap:1.2cqh"><button class="btn" data-act="pot1" ${S.gold<potPrice()?'disabled':''}>1개 ${kor(potPrice())}G</button><button class="btn gold" data-act="pot10" ${S.gold<potPrice()*9?'disabled':''}>10개 ${kor(potPrice()*9)}G</button></div></div>
-    <div class="sec">퀘스트</div>`;
+    <div class="sec">반복 의뢰</div>`;
+
     const rw=qRw(),done=S.q.n>=S.q.need;
     h+=`<div class="item"><div><div class="name">${DG().name} 몬스터 처치 #${S.q.no}</div><div class="sub">${S.q.n} / ${S.q.need}마리 · 보상 ${kor(rw)}G + 포션 3개</div></div>
     <button class="btn ${done?'gold':''}" data-act="quest" ${done?'':'disabled'}>${done?'보상 받기':'진행 중'}</button></div>`;
@@ -1481,6 +1521,7 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='skill'&&S.kp>0){const sk=C().sk.find(s=>s.id===k);if(S.job>=sk.job&&(S.sk[k]||0)<sk.max){S.sk[k]=(S.sk[k]||0)+1;S.kp--;}}
   else if(a==='dg'){goDungeon(+k);closePop();return;}
   else if(a==='enh'){if(enhance(k))sfx('click');}
+  else if(a==='mq'){mqClaim();}
   else if(a==='ttl'){if((S.ttl||[]).includes(k))S.ttlOn=S.ttlOn===k?'':k;}
   else if(a==='enhAll'){const c=enhanceAll();if(c){sfx('lvl');flash(`슬롯 강화 ${c}회 완료`,'#f2c14e');}}
   else if(a==='hsel'){UI.hsel=UI.hsel===+k?0:+k;}
@@ -1538,7 +1579,7 @@ $('#bD').addEventListener('pointerdown',e=>{e.preventDefault();P.manual=1.5;drop
  sk.addEventListener('pointerdown',e=>{if(editing)return;e.preventDefault();pid=e.pointerId;try{sk.setPointerCapture(pid);}catch(_){}sk.classList.add('on');mv(e);});
  sk.addEventListener('pointermove',e=>{if(pid===e.pointerId)mv(e);});
  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>sk.addEventListener(t,e=>{if(pid===e.pointerId||t==='lostpointercapture')end();}));}
-$('#mis').addEventListener('click',()=>{if(!editing)claimQuest();});
+$('#mis').addEventListener('click',()=>{if(editing)return;if($('#mis').dataset.main){if(!mqClaim())openPop('town');}else claimQuest();});
 document.querySelectorAll('.ks').forEach(b=>b.addEventListener('click',()=>{want[+b.dataset.n]=1;}));
 {const ba=$('#bAtk'),on=e=>{if(editing)return;e.preventDefault();atkHold=1;ba.classList.add('on');},off=()=>{atkHold=0;ba.classList.remove('on');};
  ba.addEventListener('pointerdown',on);['pointerup','pointercancel','pointerleave'].forEach(t=>ba.addEventListener(t,off));}
@@ -1575,7 +1616,9 @@ function syncButtons(){sideBg();
     const cd=$('#kC'+n);cd.hidden=!(on&&t>0);if(on&&t>0)cd.textContent=Math.ceil(t);}
   $('#potN').textContent=S.potions;$('#potB').classList.toggle('low',S.potions<=0);$('#atkKey').textContent=keyName(S.opt.keys.atk||'z');
   $('#bA').setAttribute('aria-pressed',S.autoSkill);
-  {const dn=S.q.n>=S.q.need,m=$('#mis');m.classList.toggle('done',dn);$('#misT').textContent=`퀘스트 ${S.q.no} · ${DG().name}`;$('#misP').textContent=dn?`완료! 보상 ${kor(qRw())}G + 포션 3개`:`몬스터 처치 ${S.q.n} / ${S.q.need}`;$('#misB').style.width=Math.min(100,S.q.n/S.q.need*100)+'%';}
+  {const q=mqFix(),rp=S.q.n>=S.q.need,mOk=mqDone(),main=q.ch<STORY.length&&(mOk||!rp),m=$('#mis');m.dataset.main=main?1:'';
+   if(main){const [gt,gp]=mqGoal(),[rg,rpn]=mqRw();m.classList.toggle('done',mOk);$('#misT').textContent=`메인 ${q.ch+1}장 · ${STORY[q.ch].t}`;$('#misP').textContent=mOk?`완료! 보상 ${kor(rg)}G + 포션 ${rpn}개`:gt;$('#misB').style.width=(mOk?100:gp*100)+'%';}
+   else{m.classList.toggle('done',rp);$('#misT').textContent=`의뢰 ${S.q.no} · ${DG().name}`;$('#misP').textContent=rp?`완료! 보상 ${kor(qRw())}G + 포션 3개`:`몬스터 처치 ${S.q.n} / ${S.q.need}`;$('#misB').style.width=Math.min(100,S.q.n/S.q.need*100)+'%';}}
   $('#mGrow').classList.toggle('dot',TRN.some(T=>trLv(T.k)<trCap(T)&&S.gold>=trCost(trLv(T.k))*3));$('#mInv').classList.toggle('dot',S.bag.some(it=>S.eq[it.k]&&iScore(it)>iScore(S.eq[it.k])&&S.lv>=iLv(it)));
   $('#mChar').classList.toggle('dot',S.sp>0);$('#mSkill').classList.toggle('dot',S.kp>0&&C().sk.some(k=>(k.job===0?S.job===0:k.job<=S.job)&&(S.sk[k.id]||0)<k.max));
 }
@@ -1624,6 +1667,7 @@ function loadChar(ch){
   S.kp=kpFix();starterHero();
   mq.length=0;P.hp=maxHp();
   if(S.fresh)mq.push(welcomeText);else{const t=offlineText();if(t)mq.unshift(()=>t);}
+  {const q=mqFix();if(!q.pro){q.pro=1;mq.push(storyPro);if(q.ch<STORY.length)mq.push(storyIntro(q.ch));}}
   if(S.lv>=10&&S.job===0&&!mq.includes(jobModal))mq.push(jobModal);
   if(S.lv>=30&&S.job===1&&!mq.includes(job2Modal))mq.push(job2Modal);
   if(S.lv>=70&&S.job===2&&!mq.includes(job3Modal))mq.push(job3Modal);
