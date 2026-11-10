@@ -271,7 +271,11 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 #bR{transform:rotate(90deg)}#bD{transform:rotate(180deg)}#bL{transform:rotate(-90deg)}
 /* 점프는 오른쪽 버튼으로 옮겼으므로 왼쪽은 좌·우·아래만 */
 #sideBg{position:fixed;z-index:-1;inset:-4%;background:#0b0a1e center/cover no-repeat;filter:blur(10px) brightness(.5) saturate(1.1);pointer-events:none}
-.stage.wide{overflow:visible;box-shadow:0 0 28px 6px rgba(0,0,0,.55)}
+.stage.wide{overflow:visible}
+/* 넓은 화면의 양옆: 배경 그림을 거울처럼 뒤집어 이어 붙여 풍경이 끊기지 않게 한다 (노치 쪽 끝까지) */
+#sideL,#sideR{display:none;position:absolute;top:0;height:100%;background-repeat:no-repeat;background-size:var(--sw,100%) 100%;transform:scaleX(-1);pointer-events:none}
+.stage.wide #sideL{display:block;right:100%;width:var(--sx,0px);background-position:left top}
+.stage.wide #sideR{display:block;left:100%;width:var(--sxr,0px);background-position:right top}
 .stage.wide .dpad{translate:calc(var(--ox,0px)*-1) 0}
 .stage.wide #bAtk,.stage.wide .ks,.stage.wide #bJ2,.stage.wide #potB{translate:var(--ox,0px) 0}
 #bJ,#bL,#bR,#bD,.dpad i{display:none}.dpad{display:block;width:27cqh;height:27cqh;left:3%;bottom:5cqh}
@@ -331,6 +335,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 
 
 <div class="stage" id="stage">
+  <div id="sideL"></div><div id="sideR"></div>
   <canvas id="game" aria-label="게임 화면"></canvas>
 
   <div class="ui dpad" aria-label="이동">
@@ -408,8 +413,9 @@ function layoutStage(){const st=document.getElementById('stage'),pr=document.get
   else{w=Math.max(120,Math.min(aw,vh*16/9));h=w*9/16;}
   const side=Math.max(0,(aw-w)/2);             /* 더 넓은 화면: 남는 양옆은 배경 그림으로 채우고 조작 버튼을 그쪽으로 밀어낸다 */
   st.style.position='fixed';st.style.aspectRatio='auto';st.style.width=w+'px';st.style.height=h+'px';st.style.left=(il+side)+'px';st.style.top=((vh-h)/2)+'px';st.style.maxWidth='none';
-  st.style.setProperty('--ox',Math.round(side*0.92)+'px');st.classList.toggle('wide',side>8);fit();}
-let sideKey='';function sideBg(){const k=DG().bg;if(k!==sideKey){sideKey=k;const e=document.getElementById('sideBg');if(e)e.style.backgroundImage=`url(assets/${k}.webp)`;}}
+  st.style.setProperty('--ox',Math.round(side*0.92)+'px');st.style.setProperty('--sx',Math.ceil(side+il+2)+'px');st.style.setProperty('--sxr',Math.ceil(side+ir+2)+'px');st.style.setProperty('--sw',w+'px');st.classList.toggle('wide',side>8);fit();}
+let sideKey='';function sideBg(){const k=selecting?'':DG().bg;if(k!==sideKey){sideKey=k;const u=k?`url(assets/${k}.webp)`:'none';
+  for(const id of ['sideBg','sideL','sideR']){const e=document.getElementById(id);if(e)e.style.backgroundImage=u;}}}
 layoutStage();addEventListener('resize',layoutStage);addEventListener('orientationchange',()=>setTimeout(layoutStage,250));if(window.visualViewport)visualViewport.addEventListener('resize',layoutStage);setTimeout(layoutStage,400);setTimeout(layoutStage,1500);
 $('#skipRot').addEventListener('click',()=>{document.body.classList.add('skip');});
 
@@ -1605,7 +1611,7 @@ function offlineText(){
 }
 function welcomeText(){const c=C();return `<h2>${c.name} 시작!</h2><p><b>${c.role}</b><br>주 스탯은 <b>${STN[c.main]}</b>이에요. 10·30·70·120레벨에 전직하고, 120레벨에는 각성 스킬이 열려요.</p><button>사냥 시작</button>`;}
 /* ---------- 캐릭터 선택 ---------- */
-function showSelect(){if(!selecting)save();selecting=true;paused=true;P.dir=0;closePop();
+function showSelect(){if(!selecting)save();selecting=true;sideBg();paused=true;P.dir=0;closePop();
   const last=lsGet(KEY+'-last');
   $('#cards').innerHTML=Object.keys(CLS).map(k=>{const c=CLS[k],o=summary(k);
     return `<button class="ccard${o?'':' new'}${k===last&&o?' last':''}" data-ch="${k}"><img src="assets/${k}.webp" alt=""><b>${c.name}</b><span class="cj">${c.jobs[1]} · 주 스탯 ${STN[c.main]}</span><span class="cr">${c.role}</span><span class="cl">${o?`Lv.${o.lv} ${c.jobs[o.job||0]} · 이어하기`:'새로 시작'}</span></button>`;}).join('');
