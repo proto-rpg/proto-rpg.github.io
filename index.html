@@ -678,7 +678,7 @@ function starterHero(){if(S.gotHero||S.lv<10)return;S.gotHero=1;if(!S.heroes.len
 /* 성장(훈련): 골드로 기본 능력치를 단계별로 올린다. 단계 한도는 레벨 × 2 */
 const TRN=[{k:'atk',ic:'공',n:'기본 공격력',d:'공격력',per:0.4,u:'%',c:'#ff8a5c'},{k:'hp',ic:'생',n:'기본 생명력',d:'최대 체력',per:0.4,u:'%',c:'#ff7a9a'},{k:'reg',ic:'회',n:'생명력 회복',d:'초당 체력 회복',per:0.02,u:'%',cap:60,c:'#58d08a'},{k:'def',ic:'방',n:'기본 방어력',d:'방어력',per:1.5,u:'',c:'#7cc4ff'}];
 const trLv=k=>(S.tr&&S.tr[k])||0,trCap=T=>T.cap||S.lv*2;
-const trCost=L=>Math.round(mobStat(Math.max(1,L/4)).gold*50*(1+L/60)+20);
+const trCost=L=>Math.round(mobStat(Math.max(1,L/4)).gold*125*(1+L/50)+50);
 function train(k,n){const T=TRN.find(t=>t.k===k);let c=0;while(c<n&&trLv(k)<trCap(T)&&S.gold>=trCost(trLv(k))){S.gold-=trCost(trLv(k));S.tr[k]=trLv(k)+1;c++;}return c;}
 const defAll=()=>eqStat('방어력')+trLv('def')*1.5;
 const power=()=>Math.round(baseAtk()*(1+pas('atkPct'))*(1+critRate()*(0.6+pas('critDmg')+optSum('critDmg')))*3+maxHp()*0.5+defAll()*12);
