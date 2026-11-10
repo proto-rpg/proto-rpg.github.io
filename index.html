@@ -318,7 +318,11 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .mis em{background:linear-gradient(#ffe36b,#ffb52a);color:var(--ink);border:.3cqh solid #fff0a6;box-shadow:0 .4cqh 0 #b96a08}
 /* 알림 카드 · 캐릭터 선택 · 안내 */
 .card{background:linear-gradient(var(--pn1),var(--pn2));border:.45cqh solid var(--trim);border-radius:3cqh;box-shadow:0 0 0 .35cqh #2a1c54,0 2cqh 6cqh rgba(0,0,0,.6)}
-.stry{display:flex;align-items:center;gap:2.4cqh;text-align:left}.stry img{height:24cqh;width:auto;flex:none;filter:drop-shadow(0 .6cqh .8cqh rgba(0,0,0,.5))}.stry p{font-size:2.9cqh;line-height:1.65}
+.stry{display:flex;align-items:center;gap:2.6cqh;text-align:left;min-height:25cqh}.stry img{height:25cqh;width:auto;max-width:26cqh;object-fit:contain;flex:none;filter:drop-shadow(0 .6cqh .8cqh rgba(0,0,0,.5))}
+.stry p{font-size:2.9cqh;line-height:1.7;margin:0;color:#e9e6ff}.stry.say p{color:#fff;font-size:3.1cqh}.stry b{display:block;font-family:var(--f-display);font-weight:400;font-size:2.8cqh;margin-bottom:.6cqh}
+#mcard:has(.stry){width:min(96cqh,88%);position:relative}
+.card button.skip{background:none;border:none;border-bottom:none;box-shadow:none;color:var(--mute);font-size:2.4cqh;padding:0;text-decoration:underline;align-self:center}
+.card .pg{position:absolute;right:2.4cqh;top:2cqh;font-size:2.2cqh;color:var(--mute)}
 .card h2{color:#ffe08a;text-shadow:0 .3cqh 0 rgba(0,0,0,.5)}
 .card button{background:linear-gradient(#ffe36b,#ffb52a);border:1px solid #fff0a6;border-bottom:.6cqh solid #b96a08;color:var(--ink)}
 .sel{background:radial-gradient(ellipse at 50% 28%,rgba(78,62,160,.96),rgba(13,11,34,.98) 72%)}
@@ -619,7 +623,7 @@ const TTL=[
  {id:'t1',n:'수련생',d:'훈련 합계 200단계',st:'hpPct',v:2,ok:()=>TRN.reduce((a,T)=>a+trLv(T.k),0)>=200},{id:'t2',n:'수련의 달인',d:'훈련 합계 800단계',st:'dmgRed',v:2,ok:()=>TRN.reduce((a,T)=>a+trLv(T.k),0)>=800}];
 const TTLM={};TTL.forEach(T=>TTLM[T.id]=T);let ttlT=0;
 function ttlCheck(){if(!S.ttl)S.ttl=[];for(const T of TTL)if(!S.ttl.includes(T.id)&&T.ok()){S.ttl.push(T.id);if(!S.ttlOn)S.ttlOn=T.id;sfx('loot');flash(`칭호 획득 · ${T.n} (${HSTN[T.st]} +${T.v}%)`,'#ffe08a');dirty=true;}}
-const optSum=key=>{let a=0;for(const id of S.ttl||[]){const T=TTLM[id];if(T&&T.st===key)a+=T.v;}for(const k of SLK){const it=S.eq[k];if(it)for(const x of it.o)if(x[0]===key)a+=x[1];}for(const h of team())if(HEROES[h.h].st===key)a+=hBonus(h);return a/100;};
+const optSum=key=>{let a=(key==='atkPct'||key==='hpPct')?shards():0;for(const id of S.ttl||[]){const T=TTLM[id];if(T&&T.st===key)a+=T.v;}for(const k of SLK){const it=S.eq[k];if(it)for(const x of it.o)if(x[0]===key)a+=x[1];}for(const h of team())if(HEROES[h.h].st===key)a+=hBonus(h);return a/100;};
 /* 동료(영웅): 골드로 뽑고, 같은 등급끼리 합성해 레벨업, 최대 레벨 둘로 승급. 배치하면 능력치가 오르고 보스전에 함께 싸운다 */
 const HEROES=[{k:'h_knight',n:'방패 기사 로한',st:'dmgRed',b:1.5,fx:'v_slash'},{k:'h_cleric',n:'사제 세라',st:'hpPct',b:4,fx:'e_awk'},{k:'h_gunner',n:'총잡이 진',st:'atkPct',b:3,fx:'e_arrow'},{k:'h_ninja',n:'닌자 하루',st:'crit',b:1.5,fx:'k_star'},
  {k:'h_spirit',n:'정령사 리나',st:'expPct',b:3,fx:'y_spark'},{k:'h_merchant',n:'상인 금동',st:'goldPct',b:5,fx:'b_orb'},{k:'h_berserk',n:'광전사 바론',st:'critDmg',b:5,fx:'v_slam'},{k:'h_ice',n:'얼음 마녀 아이린',st:'cdr',b:2,fx:'v_cyclone'}];
@@ -650,35 +654,87 @@ const defAll=()=>eqStat('방어력')+trLv('def')*1.5;
 const power=()=>Math.round(baseAtk()*(1+pas('atkPct'))*(1+critRate()*(0.6+pas('critDmg')+optSum('critDmg')))*3+maxHp()*0.5+defAll()*12);
 const qRw=()=>Math.max(150*S.q.no,Math.round(mobStat(gs()).gold*40));
 /* ---------- 스토리 · 메인 퀘스트 ----------
-   10년 전 마왕에게 패해 힘을 잃은 네 영웅이, 열 곳에 흩어진 힘의 조각을 되찾아 다시 마왕을 쓰러뜨리는 이야기.
-   던전 하나가 한 장이고, 장마다 퀘스트 3개(몬스터 처치 → 중간 보스 → 수호자)를 순서대로 깬다. */
+   10년 전 마왕 카이져에게 패해 힘을 잃은 네 영웅이, 열 곳에 흩어진 힘의 조각을 되찾아 다시 마왕성에 오르는 이야기.
+   던전 하나가 한 장. 장마다 퀘스트 3개(q)와 장면 3개(a 시작 · m 중간 보스 뒤 · z 수호자 뒤)가 있다.
+   장면의 한 쪽은 [말하는 이, 글]. n=지문, A·B·C=내가 고르지 않은 세 영웅(차례로 합류), K=카이져.
+   {A}{B}{C}는 그 영웅의 이름, @키 는 그 영웅만의 대사(SAY)로 바뀐다. */
+const SAY={
+ join:{vera:'늦었군. …아니, 내가 늦은 건가. 어쨌든 살아 있었구나.',elena:'화살이 닿는 거리에서 며칠 지켜봤어요. 진짜인지 확인하느라. 맞네요, 그 걸음걸이.',yuna:'흔적을 따라 계산하면 여기쯤일 줄 알았어요. 사흘 빨랐네요. 좋은 쪽으로 틀렸어요.',kai:'어이, 살아 있었네. 죽었다는 쪽에 걸었는데. 돈 잃고 기분 좋은 건 처음이다.'},
+ camp:{vera:'여기 난로는 내가 고쳤었지. 아직 붙어 있으려나.',elena:'여기서 처음으로 활시위가 얼어서 끊어졌죠. 그날 많이 울었어요.',yuna:'이 기지 식량 장부를 제가 맡았었죠. 늘 누가 육포를 빼 갔어요.',kai:'육포 훔쳐 먹던 창고가 저기야. 공소시효 지났지?'},
+ fire:{vera:'덥군. 그래도 갑옷 벗을 생각은 마라.',elena:'화살 깃이 타겠어요. 빨리 끝내요.',yuna:'이 온도면 주문을 절반으로 줄여야 해요. 바짝 붙어서 따라오세요.',kai:'여기서 달걀 익겠다. 농담 아니고, 진짜 익어.'},
+ truth:{vera:'…그래서 그날 검을 안 뽑은 건가.',elena:'우리를 죽일 수 있었는데, 안 죽인 거였군요.',yuna:'힘을 뺏은 게 아니에요. 숨겨 둔 거예요. 우리가 더 강해져서 돌아오도록.',kai:'하, 선생 노릇을 그렇게 하나. 말로 하지.'},
+ gate:{vera:'이번엔 내가 앞에 선다. 뒤는 맡긴다.',elena:'한 발이면 돼요. 그 한 발을 쏠 틈만 만들어 줘요.',yuna:'승산은 계산 안 했어요. 이번엔 필요 없을 것 같아서.',kai:'끝나면 내가 살게. 그러니까 다들 살아서 내려가자.'},
+ end:{vera:'단장 자리는 비워 둔다. 한 사람 몫이니까.',elena:'봄이 오면 숲으로 소풍 가요. 도시락은 다섯 사람 몫으로.',yuna:'기록에 한 줄 보탰어요. "끝낸 사람들이 있었다"고.',kai:'그래서 술은 누가 사는 거야? …알았어, 내가 산다고 했지.'}};
+const PROLOG=[['n','10년 전 겨울, 우리 넷은 마왕성 꼭대기까지 올라갔다. 별빛 기사단에서 제일 강하다던 넷이었다.'],
+ ['n','싸움은 길지 않았다. 마왕 카이져는 검을 뽑지도 않았다. 손짓 한 번에 우리 몸에서 빛이 빠져나갔고, 그 빛은 열 갈래로 찢겨 사방으로 날아갔다.'],
+ ['K','죽이지는 않겠다. 가져가라. 할 수 있다면.'],
+ ['n','눈을 뜬 곳은 햇살 숲이었다. 늘 쓰던 무기가 낯설 만큼 무겁다. 동료들은 보이지 않는다. 할 일은 하나다. 흩어진 힘을 되찾는다.']];
+const EPILOG=[['n','마왕성은 무너지지 않았다. 우리는 옥좌를 치우고 그 자리에 봉화대를 세웠다.'],['C','@end'],
+ ['n','세상에는 아직 마기가 남아 있고, 싸울 일도 남아 있다. 그래도 이제는 넷이서 간다.']];
 const STORY=[
- {t:'잃어버린 힘',a:'평화롭던 숲의 짐승들이 마기에 물들어 사나워졌다. 숲 가장 깊은 곳에서 익숙한 기운이 느껴진다. 첫 번째 힘의 조각이다.',z:'수호자가 쓰러지자 빛나는 조각이 몸속으로 스며든다. 잊고 있던 기술이 손끝에 되살아난다. 아직 아홉 조각이 남았다.'},
- {t:'어둠 속의 빛',a:'숲 아래로 이어진 동굴. 빛나는 이끼 사이로 마기가 스며 나온다. 10년 전, 패배한 기사단이 숨어들었던 바로 그 길이다.',z:'동굴 벽에서 기사단의 낡은 깃발을 찾았다. "반드시 돌아온다." 그날 남긴 약속이 아직 그대로 적혀 있다.'},
- {t:'메마른 땅',a:'마왕이 강을 말려 버린 뒤로 협곡에는 모래바람만 분다. 살아남은 상인들이 길을 막은 괴물을 물리쳐 달라고 부탁한다.',z:'수호자가 쓰러지자 협곡 바닥에서 물이 다시 솟는다. 사람들이 영웅의 이름을 다시 부르기 시작했다.'},
- {t:'얼어붙은 맹세',a:'끝없는 눈보라 속에 기사단의 옛 전초 기지가 묻혀 있다. 네 번째 조각은 그 얼음 아래에서 잠들어 있다.',z:'전초 기지의 봉화에 다시 불이 붙었다. 멀리서도 보이는 저 불빛은 흩어진 동료들에게 보내는 신호다.'},
- {t:'가라앉은 왕국',a:'마왕의 첫 공격에 바다 밑으로 가라앉은 왕국. 물속 궁전에는 아직도 그날의 종소리가 울린다.',z:'힘의 절반을 되찾았다. 이제 마왕도 눈치챘을 것이다. 수면 위로 검은 번개가 내리친다.'},
- {t:'불의 시련',a:'마왕의 군단이 무기를 벼리는 화산. 여기서부터는 길목마다 마왕의 정예가 지키고 있다.',z:'용암 속에서 건진 조각은 뜨겁게 달아올라 있었다. 예전의 힘을 넘어 새로운 경지가 열린다.'},
- {t:'구름 위의 길',a:'마왕성은 구름 위에 떠 있다. 하늘 정원은 그곳으로 오르는 단 하나의 길이다.',z:'정원 끝에서 마왕성이 처음으로 눈에 들어온다. 10년 전 그날과 똑같은 검은 탑이다.'},
- {t:'봉인의 기록',a:'유적에는 아득한 옛날 마왕을 봉인했던 영웅들의 기록이 남아 있다. 마왕을 쓰러뜨릴 방법이 여기 있을지 모른다.',z:'기록의 마지막 줄. "마왕은 빼앗은 힘으로 버틴다. 조각을 모두 되찾으면 그는 무너진다." 남은 조각은 둘.'},
- {t:'마지막 관문',a:'빛이 들지 않는 숲. 이곳에서 쓰러진 자들의 그림자가 길을 막아선다. 그중에는 10년 전의 나도 있다.',z:'과거의 그림자를 베어 넘겼다. 그날의 패배가 더는 두렵지 않다. 마왕성의 문이 열린다.'},
- {t:'다시, 마왕 앞에',a:'10년을 돌아 다시 이 문 앞에 섰다. 이번에는 혼자가 아니고, 그때보다 강하다.',z:'마왕이 쓰러지고 마지막 조각이 돌아온다. 검은 구름이 걷히고 열 곳의 땅에 아침이 온다. 영웅의 이야기는 이제 전설이 된다.'}];
+ {t:'잃어버린 힘',q:['사나워진 숲의 짐승들','숲을 어지럽힌 우두머리','첫 번째 조각의 수호자'],
+  a:[['n','이 숲은 원래 아이들이 소풍 오던 곳이다. 지금은 다람쥐까지 이빨을 드러낸다. 마기 탓이다.'],['n','숲 안쪽에서 익숙한 온기가 느껴진다. 10년을 떨어져 있었어도 내 것은 알아볼 수 있다.']],
+  m:[['n','우두머리가 쓰러지자 주변 짐승들의 눈에서 붉은 기가 가신다. 한 마리가 머뭇거리다 숲속으로 달아난다.'],['n','조각이 가까워질수록 손이 덜 떨린다. 몸이 먼저 기억해 내고 있다.']],
+  z:[['n','수호자가 무너진 자리에 손톱만 한 빛이 떠 있다. 손을 대자 빛이 팔을 타고 올라온다.'],['n','잊었던 자세가 돌아온다. 발을 어디에 두는지, 숨을 언제 쉬는지. 하나를 찾았다. 아홉 남았다.']]},
+ {t:'어둠 속의 빛',q:['동굴에 번진 마기','길을 막은 동굴의 주인','깃발 아래의 수호자'],
+  a:[['n','숲 아래로 동굴이 이어진다. 10년 전, 마왕성에서 쫓겨 내려온 기사단이 숨어들었던 길이다.'],['n','이끼가 내는 푸른빛에 벽의 칼자국이 드러난다. 누군가 여기서 끝까지 싸웠다.']],
+  m:[['n','동굴 한쪽에 모닥불 자리가 있다. 재가 아직 눅눅하지 않다. 얼마 전까지 누가 있었다.'],['n','살아남은 기사단원들이 있다. 흩어졌을 뿐이다. 다시 모을 수 있다.<br><span class="lbl">동료 메뉴에서 기사단원을 불러 모을 수 있어요.</span>']],
+  z:[['n','가장 깊은 방 벽에 낡은 기사단 깃발이 걸려 있다. 그 아래 누군가 칼끝으로 글자를 새겨 놓았다.'],['n','"반드시 돌아온다." 이 글씨체를 안다. {A}의 것이다.']]},
+ {t:'메마른 땅',q:['모래바람 속의 약탈자들','우물을 차지한 괴물','강을 삼킨 수호자'],
+  a:[['n','협곡에는 원래 강이 흘렀다. 카이져가 물길을 끊은 뒤로는 모래만 분다.'],['n','바위 그늘에 숨어 있던 상인이 물통을 내민다. "영웅님 맞죠? 얼굴이 벽보랑 똑같은데. 좀 늙으시긴 했지만."']],
+  m:[['n','우물을 되찾자 상인들이 하나둘 돌아온다. 며칠 전에도 혼자 괴물을 베고 지나간 사람이 있었다고 한다.'],['n','"그분도 영웅님이랑 같은 문장을 달고 있던데요."']],
+  z:[['n','수호자가 쓰러지자 협곡 바닥이 젖어 든다. 물이다. 10년 만에 강이 돌아오고 있다.'],['A','@join'],['n','{A}가 합류했다. 둘이 되니 등 뒤가 덜 시리다.']]},
+ {t:'얼어붙은 맹세',q:['눈보라 속의 추격자들','전초 기지를 차지한 짐승','얼음 아래의 수호자'],
+  a:[['n','설원 한가운데 기사단의 옛 전초 기지가 묻혀 있다. 신입 시절에는 겨울마다 여기서 보초를 섰다.'],['A','@camp']],
+  m:[['n','기지 문을 열자 얼어붙은 식탁이 그대로다. 접시 넷, 잔 넷. 떠나던 날 아침 그대로다.'],['n','아무도 말을 꺼내지 않는다. 장작을 모아 봉화대에 올린다.']],
+  z:[['n','수호자가 쓰러지고 조각이 돌아오자 봉화에 불이 붙는다. 눈보라 속에서도 보일 만큼 크게.'],['n','저 불을 알아볼 사람이 둘 더 있다. 보고 있다면 올 것이다.']]},
+ {t:'가라앉은 왕국',q:['물속 궁전의 망령들','종탑을 지키는 것','심해의 수호자'],
+  a:[['n','카이져가 처음 세상에 모습을 드러낸 날, 이 왕국은 통째로 바다에 잠겼다. 하룻밤 사이였다.'],['n','물속 궁전의 종이 아직 울린다. 칠 사람이 없는데도.']],
+  m:[['n','종탑 꼭대기에서 종을 치던 건 작은 물의 정령이었다. 10년 동안 혼자서.'],['n','"누가 들으면 올 줄 알았어." 정령이 말한다. "왔네."']],
+  z:[['n','다섯 번째 조각. 절반이다. 몸이 가벼워진 게 느껴진다.'],['K','…절반을 모았군. 생각보다 빠르다.'],['n','목소리는 머릿속에서 울렸다. 화난 기색이 아니다. 그게 더 이상하다.'],['B','@join'],['n','{B}가 물 밖에서 기다리고 있었다. 봉화를 보고 왔다고 했다.']]},
+ {t:'불의 시련',q:['마왕군의 대장간','정예 부대의 대장','용암 속의 수호자'],
+  a:[['n','마왕군이 무기를 벼리는 화산이다. 여기서부터는 짐승이 아니라 군대를 상대한다.'],['B','@fire']],
+  m:[['n','정예 대장의 투구가 벗겨진다. 안에는 아무것도 없다. 갑옷만 걸어 다니고 있었다.'],['n','카이져의 군대는 병사가 아니다. 마기로 움직이는 빈 껍데기다. 그는 10년 동안 혼자였다.']],
+  z:[['n','용암에서 건진 조각은 손을 델 만큼 뜨겁다. 삼키듯 받아들이자 눈앞이 환해진다.'],['n','예전의 나는 여기까지였다. 지금은 그 너머가 보인다.']]},
+ {t:'구름 위의 길',q:['구름 위의 파수꾼들','다리를 지키는 날개','폭풍 속의 수호자'],
+  a:[['n','마왕성은 구름 위에 떠 있다. 올라가는 길은 하늘 정원 하나뿐이다.'],['n','10년 전에도 이 길로 올라갔다. 그때는 넷이서 웃으면서 갔다. 내려올 때 일은 기억에 없다.']],
+  m:[['n','정원 가운데 돌탁자에 찻잔이 놓여 있다. 아직 김이 난다. 탁자 모서리에는 기사단 문장이 새겨져 있다.'],['n','마지막 한 사람도 먼저 와 있었다.']],
+  z:[['n','폭풍이 걷히자 구름 사이로 검은 탑이 보인다. 10년 전 그날과 똑같다.'],['C','@join'],['n','넷이 다 모였다. 조각은 셋 남았다.']]},
+ {t:'봉인의 기록',q:['깨어난 돌 병사들','기록 보관소의 문지기','진실을 지키는 수호자'],
+  a:[['n','마왕성 바로 아래에 기사단보다 오래된 유적이 있다. 처음 마기를 봉인한 사람들의 기록이 남아 있다고 했다.'],['n','카이져를 쓰러뜨릴 방법이 있다면 여기다.']],
+  m:[['n','벽화에 기사 한 사람이 그려져 있다. 검은 안개를 제 가슴에 밀어 넣는 모습이다. 발밑에 이름이 있다.'],['n','"별빛 기사단 초대 단장, 카이져."']],
+  z:[['n','기록은 이렇게 끝난다. "봉인할 그릇이 없어 단장이 스스로 그릇이 되었다. 마기가 그를 다 삼키기 전에 누군가 그를 끝내야 한다."'],['A','@truth'],['n','남은 조각은 둘. 올라가야 하는 이유가 달라졌다.']]},
+ {t:'마지막 관문',q:['길을 막는 그림자들','쓰러진 기사의 그림자','10년 전의 나'],
+  a:[['n','마왕성 앞의 숲에는 빛이 들지 않는다. 여기서 쓰러진 사람은 그림자가 남아 길을 막는다고 한다.'],['n','그렇다면 우리 그림자도 있을 것이다. 10년 전에 여기서 한 번 쓰러졌으니까.']],
+  m:[['n','그림자 기사가 검을 내린다. 투구 틈으로 낯익은 문장이 보인다. 먼저 올라갔다 돌아오지 못한 선배들이다.'],['n','지나가라는 듯 길을 비켜 준다.']],
+  z:[['n','마지막 그림자는 내 얼굴을 하고 있었다. 10년 전의 나. 겁이 없고, 빠르고, 혼자 다 할 수 있다고 믿던.'],['n','이겼다. 지금의 내가 그때의 나보다 강하다. 몸은 느려졌어도 혼자가 아니니까.'],['K','올라와라. 기다리고 있다.']]},
+ {t:'다시, 마왕 앞에',q:['빈 갑옷의 군단','옥좌로 가는 계단','마왕 카이져'],
+  a:[['n','성문은 잠겨 있지 않았다. 10년 전에도 그랬다. 그때는 우리를 얕보는 줄 알았다.'],['A','@gate'],['B','@gate'],['C','@gate']],
+  m:[['n','옥좌 앞 계단에 무기 네 자루가 꽂혀 있다. 10년 전 우리가 떨어뜨린 것들이다. 녹 하나 없다.'],['n','누군가 10년 동안 닦아 온 것이다.']],
+  z:[['K','…늦었구나.'],['K','아니다. 딱 맞게 왔다. 조금만 더 늦었으면 내가 나를 못 알아봤을 거다.'],['n','마지막 조각이 돌아오자 검은 안개가 갑옷에서 빠져나간다. 갑옷 안에는 백발의 노기사가 앉아 있었다.'],['K','잘 컸다. …이제 좀 쉬자.'],['n','구름이 걷힌다. 열 곳의 땅에 10년 만의 아침이 온다.']]}];
 const MQN=[30,40,50,60,70,80,90,100,110,120],MQG=[3,5,12],MQP=[2,3,5];
 function mqFix(){if(!S.mq||typeof S.mq.ch!=='number')S.mq={ch:0,st:0,n:0,pro:0};return S.mq;}
+const shards=()=>Math.min(STORY.length,(S&&S.mq&&S.mq.ch)||0);   /* 되찾은 조각 하나마다 공격력·체력 +1% */
 const mqStage=c=>S.dg===c?S.stage:(S.prog[c]||1);
 function mqDone(){const q=mqFix(),c=q.ch;if(c>=STORY.length)return false;const past=S.maxDg>c;
   return q.st===0?(past||q.n>=MQN[c]):q.st===1?(past||mqStage(c)>5):(c===STORY.length-1?!!S.end:past);}
-function mqGoal(){const q=mqFix(),c=q.ch,d=DUNG[c].name;
-  return q.st===0?[`${d} 몬스터 처치 ${Math.min(q.n,MQN[c])} / ${MQN[c]}`,Math.min(1,q.n/MQN[c])]:q.st===1?[`${d} Stage 5 중간 보스 처치`,Math.min(1,(mqStage(c)-1)/5)]:[c===STORY.length-1?'마왕 처치 (마왕성 Stage 10)':`${d}의 수호자 처치 (Stage 10)`,Math.min(1,(mqStage(c)-1)/10)];}
+function mqGoal(){const q=mqFix(),c=q.ch,nm=STORY[c].q[q.st];
+  return q.st===0?[`${nm} · 처치 ${Math.min(q.n,MQN[c])} / ${MQN[c]}`,Math.min(1,q.n/MQN[c])]:q.st===1?[`${nm} · Stage 5 보스`,Math.min(1,(mqStage(c)-1)/5)]:[`${nm} · Stage 10 보스`,Math.min(1,(mqStage(c)-1)/10)];}
 const mqRw=()=>{const q=mqFix();return [qRw()*MQG[q.st],MQP[q.st]];};
-function storyCard(title,text,btn){return `<h2>${title}</h2><div class="stry"><img src="assets/${S.ch}.webp" alt=""><p>${text}</p></div><button>${btn||'계속'}</button>`;}
-const storyIntro=c=>()=>storyCard(`${c+1}장 · ${STORY[c].t}`,STORY[c].a+`<br><span class="lbl">${DUNG[c].name} · 권장 ${DUNG[c].lv}레벨</span>`,'출발');
-const storyOutro=c=>()=>storyCard(`${c+1}장 완료 · ${STORY[c].t}`,STORY[c].z);
-const storyPro=()=>storyCard('프롤로그 · 10년 전','별빛 기사단의 네 영웅 베라, 엘레나, 유나, 카이는 마왕에게 도전했다가 패했다. 마왕은 영웅들의 힘을 열 조각으로 쪼개 열 곳의 땅에 흩어 놓았다.<br><br>힘을 잃고 깨어난 곳은 햇살 숲. 조각을 지키는 수호자들을 쓰러뜨려 힘을 되찾고, 다시 마왕성으로 가자.');
-const storyEnd=()=>storyCard('에필로그 · 돌아온 영웅','열 조각이 모두 제자리로 돌아왔다. 하지만 마왕이 사라진 땅에도 지켜야 할 것은 남아 있다. 영웅의 여정은 계속된다.','끝');
+/* 장면 재생 */
+const allies=()=>['vera','elena','yuna','kai'].filter(k=>k!==S.ch);
+function stWho(w){const al=allies(),i='ABC'.indexOf(w);return w==='K'?{n:'마왕 카이져',img:'demonb',c:'#ff7a8a'}:i>=0?{n:CLS[al[i]].name,img:al[i],k:al[i],c:'#9fe7ff'}:{n:'',img:S.ch,k:S.ch};}
+function stText(w,t){const al=allies(),who=stWho(w);if(t[0]==='@')t=SAY[t.slice(1)][who.k]||'';return t.replace(/\{([ABC])\}/g,(_,x)=>CLS[al['ABC'.indexOf(x)]].name);}
+function stPage(title,pg,i,n){const who=stWho(pg[0]),more=mq.some(f=>f.story);
+  return `<h2>${title}</h2><div class="stry${who.n?' say':''}"><img src="assets/${who.img}.webp" alt=""><div>${who.n?`<b style="color:${who.c}">${who.n}</b>`:''}<p>${stText(pg[0],pg[1])}</p></div></div><button>${i<n-1?'계속':'확인'}</button>${more?'<button class="skip" data-act="skipstory">건너뛰기</button>':''}<span class="pg">${i+1} / ${n}</span>`;}
+function playScene(title,pages){pages.forEach((pg,i)=>{const f=()=>stPage(title,pg,i,pages.length);f.story=1;mq.push(f);});if(!booting&&$('#modal').hidden)nextModal();}
+const sceneTitle=(c,k)=>`${c+1}장 · ${STORY[c].t}`+(k==='z'?' · 완료':'');
 function mqClaim(){const q=mqFix();if(!mqDone())return false;const [g,pt]=mqRw(),c=q.ch;S.gold+=g;S.potions+=pt;sfx('loot');
   flash(`메인 퀘스트 완료! +${kor(g)}G · 포션 ${pt}개`,'#ffe08a');
-  if(q.st<2){q.st++;}else{q.ch++;q.st=0;q.n=0;queueModal(storyOutro(c));queueModal(q.ch<STORY.length?storyIntro(q.ch):storyEnd);}
+  if(q.st===0)q.st=1;
+  else if(q.st===1){q.st=2;playScene(sceneTitle(c,'m'),STORY[c].m);}
+  else{q.ch++;q.st=0;q.n=0;P.hp=Math.min(maxHp(),P.hp);playScene(sceneTitle(c,'z'),STORY[c].z.concat([['n',`<span style="color:#ffe08a">힘의 조각 ${q.ch} / ${STORY.length} 회수 · 공격력과 체력 +${q.ch}%</span>`]]));
+    if(q.ch<STORY.length)playScene(sceneTitle(q.ch,'a'),STORY[q.ch].a);else playScene('에필로그 · 봉화',EPILOG);}
   dirty=true;save();return true;}
 function claimQuest(){if(S.q.n<S.q.need)return;const rw=qRw();S.gold+=rw;S.potions+=3;S.q.no++;S.q.n=0;S.q.need=Math.min(300,S.q.need+20);sfx('lvl');flash(`퀘스트 완료! +${kor(rw)}G · 포션 3개`,'#f2c14e');dirty=true;}
 function autoEquipAll(){let n=0;for(const k of SLK){const best=S.bag.filter(x=>x.k===k&&S.lv>=iLv(x)).sort((a,b)=>iScore(b)-iScore(a))[0];if(best&&(!S.eq[k]||iScore(best)>iScore(S.eq[k]))&&equipItem(best))n++;}return n;}
@@ -1466,12 +1522,12 @@ function renderPanel(){
       ${S.heroes.length?'':'<span class="sub" style="grid-column:span 6">아직 동료가 없어요. 10레벨에 첫 동료가 합류하고, 골드로 영웅을 뽑을 수 있어요.</span>'}</div>
       <p class="note">동료는 평소 사냥에는 나오지 않고 <b>보스 스테이지에서만</b> 함께 싸워요. 배치 슬롯은 ${HSLOT.join(' · ')}레벨에 하나씩 열려요. 뽑기 값은 지금 스테이지에 따라 올라요.</p>`;
   }else{
-    h+=`<div class="row"><div class="sec">스토리 · 메인 퀘스트</div><button class="btn" data-act="uitog" data-k="story">${UI.story?'접기 ▲':'전체 보기 ▼'}</button></div>`;
+    h+=`<div class="row"><div class="sec">스토리 · 메인 퀘스트 <span class="lbl">힘의 조각 ${shards()} / ${STORY.length} · 공격력·체력 +${shards()}%</span></div><button class="btn" data-act="uitog" data-k="story">${UI.story?'접기 ▲':'전체 보기 ▼'}</button></div>`;
     {const q=mqFix(),fin=q.ch>=STORY.length;
-     if(fin)h+=`<p class="note">모든 장을 끝냈어요. 마왕을 쓰러뜨린 영웅의 이야기가 전설로 남았어요.</p>`;
+     if(fin)h+=`<p class="note">열 조각을 모두 되찾았어요. 마왕성 옥좌 자리에는 이제 봉화가 타고 있어요.</p>`;
      else{const ok=mqDone(),[gt]=mqGoal(),[rg,rpn]=mqRw();h+=`<div class="item" style="border-color:var(--gold)"><div style="min-width:0"><div class="name" style="color:#ffe08a">${q.ch+1}장 · ${STORY[q.ch].t} <span class="lbl">(${q.st+1}/3)</span></div><div class="sub">${gt} · 보상 ${kor(rg)}G + 포션 ${rpn}개</div></div><button class="btn gold" data-act="mq" ${ok?'':'disabled'}>${ok?'보상 받기':'진행 중'}</button></div>
-       <p class="note">${STORY[q.ch].a}</p>`;}
-     if(UI.story)h+=STORY.map((c,i)=>`<div class="item${i>q.ch?' unown':''}"><div style="min-width:0"><div class="name">${i+1}장 · ${i<=q.ch?c.t:'???'} <span class="lbl">${DUNG[i].name}</span></div><div class="sub">${i<q.ch?c.z:i===q.ch&&!fin?'진행 중':'아직 열리지 않은 이야기'}</div></div><span class="lbl">${i<q.ch?'완료':i===q.ch?'진행 중':'잠김'}</span></div>`).join('');}
+       <p class="note">${stText('n',STORY[q.ch].a[0][1])}</p>`;}
+     if(UI.story)h+=STORY.map((c,i)=>`<div class="item${i>q.ch?' unown':''}"><div style="min-width:0"><div class="name">${i+1}장 · ${i<=q.ch?c.t:'???'} <span class="lbl">${DUNG[i].name}</span></div><div class="sub">${i<q.ch?stText('n',c.z[0][1]):i===q.ch&&!fin?'진행 중':'아직 열리지 않은 이야기'}</div></div><span class="lbl">${i<q.ch?'완료':i===q.ch?'진행 중':'잠김'}</span></div>`).join('');}
     h+=`<div class="sec">던전 이동</div>`;
     DUNG.forEach((d,i)=>{const lock=i>S.maxDg,cur=i===S.dg;
       h+=`<div class="item"><div><div class="name">${d.name} <span class="lbl">권장 ${d.lv}레벨</span></div><div class="sub">${lock?'이전 던전 최종 보스를 잡으면 열려요':`최고 Stage ${i===S.dg?S.stage:(S.prog[i]||1)}/10`}</div></div>
@@ -1629,6 +1685,7 @@ function queueModal(fn){if(!mq.includes(fn))mq.push(fn);if(!booting&&$('#modal')
 function nextModal(){const fn=mq.shift();if(!fn){$('#modal').hidden=true;paused=false;return;}
   paused=true;P.dir=0;$('#mcard').innerHTML=fn();$('#modal').hidden=false;$('#mcard button').focus();}
 $('#mcard').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.act==='skipstory'){for(let i=mq.length-1;i>=0;i--)if(mq[i].story)mq.splice(i,1);nextModal();return;}
   if(b.dataset.act==='job'){S.sk.b0=0;S.job=1;S.kp=kpFix();flash(`${C().jobs[1]} 전직 완료! 스킬 메뉴에서 ${skillOf(1).name}을(를) 배워 보세요`,'#f2c14e');save();nextModal();openPop('skill');return;}
   if(b.dataset.act==='job2'){S.job=2;flash(`${C().jobs[2]} 전직 완료! ${skillOf(2).name}을(를) 배워 보세요`,'#9fe7ff');if(S.lv>=70)mq.push(job3Modal);save();nextModal();if($('#modal').hidden)openPop('skill');return;}
   if(b.dataset.act==='job3'||b.dataset.act==='job4'){S.job=b.dataset.act==='job3'?3:4;flash(`${C().jobs[S.job]} 전직 완료! ${skillOf(S.job).name}을(를) 배워 보세요`,skillOf(S.job).col);if(S.job===3&&S.lv>=120)mq.push(job4Modal);save();nextModal();if($('#modal').hidden)openPop('skill');return;}
@@ -1667,7 +1724,7 @@ function loadChar(ch){
   S.kp=kpFix();starterHero();
   mq.length=0;P.hp=maxHp();
   if(S.fresh)mq.push(welcomeText);else{const t=offlineText();if(t)mq.unshift(()=>t);}
-  {const q=mqFix();if(!q.pro){q.pro=1;mq.push(storyPro);if(q.ch<STORY.length)mq.push(storyIntro(q.ch));}}
+  {const q=mqFix();if(!q.pro){q.pro=1;playScene('프롤로그 · 10년 전',PROLOG);if(q.ch<STORY.length)playScene(sceneTitle(q.ch,'a'),STORY[q.ch].a);}}
   if(S.lv>=10&&S.job===0&&!mq.includes(jobModal))mq.push(jobModal);
   if(S.lv>=30&&S.job===1&&!mq.includes(job2Modal))mq.push(job2Modal);
   if(S.lv>=70&&S.job===2&&!mq.includes(job3Modal))mq.push(job3Modal);
