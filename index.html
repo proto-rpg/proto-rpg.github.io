@@ -720,8 +720,8 @@ const STORY=[
   a:[['n','성문은 잠겨 있지 않았다. 10년 전에도 그랬다. 그때는 우리를 얕보는 줄 알았다. 기다린 거였다.'],['A','@gate'],['B','@gate'],['C','@gate']],
   m:[['n','옥좌 앞 계단에 무기 네 자루가 꽂혀 있다. 10년 전 우리가 떨어뜨린 것들이다. 녹 하나 없다.'],['n','누군가 10년 동안 닦아 온 것이다.']],
   z:[['K','…늦었구나.'],['K','아니다. 딱 맞게 왔다. 조금만 더 늦었으면 내가 나를 못 알아봤을 거다.'],
-   ['n',{kai:'마지막 조각이 돌아오자 검은 안개가 갑옷에서 빠져나간다. 투구가 떨어진다. 내 얼굴이다. 머리만 하얗게 세어 있다.',o:'마지막 조각이 돌아오자 검은 안개가 갑옷에서 빠져나간다. 투구가 떨어진다. 카이와 똑같은 얼굴이다. 머리만 하얗게 세어 있다.'}],
-   ['K',{kai:'처음 보는 얼굴이지. 나는 매일 봤다. …잘 컸다, 카이.',o:'다들 잘 컸다. …카이, 너는 웃는 얼굴 그대로구나.'}],['C','…형.','nokai'],['K',{kai:'이제 형 좀 쉬자.',o:'이제 좀 쉬자.'}],
+   ['N2',{kai:'마지막 조각이 돌아오자 검은 안개가 갑옷에서 빠져나간다. 투구가 떨어진다. 내 얼굴이다. 머리만 하얗게 세어 있다.',o:'마지막 조각이 돌아오자 검은 안개가 갑옷에서 빠져나간다. 투구가 떨어진다. 카이와 똑같은 얼굴이다. 머리만 하얗게 세어 있다.'}],
+   ['K2',{kai:'처음 보는 얼굴이지. 나는 매일 봤다. …잘 컸다, 카이.',o:'다들 잘 컸다. …카이, 너는 웃는 얼굴 그대로구나.'}],['C','…형.','nokai'],['K3',{kai:'이제 형 좀 쉬자.',o:'이제 좀 쉬자.'}],
    ['n','구름이 걷힌다. 열 곳의 땅에 10년 만의 아침이 온다.']]}];
 const MQN=[30,40,50,60,70,80,90,100,110,120],MQG=[3,5,12],MQP=[2,3,5];
 function mqFix(){if(!S.mq||typeof S.mq.ch!=='number')S.mq={ch:0,st:0,n:0,pro:0};return S.mq;}
@@ -734,7 +734,7 @@ function mqGoal(){const q=mqFix(),c=q.ch,nm=STORY[c].q[q.st];
 const mqRw=()=>{const q=mqFix();return [qRw()*MQG[q.st],MQP[q.st]];};
 /* 장면 재생 */
 const allies=()=>['vera','elena','yuna','kai'].filter(k=>k!==S.ch);
-function stWho(w){const al=allies(),i='ABC'.indexOf(w);return w==='K'?{n:'마왕 카이져',img:'demonb',c:'#ff7a8a'}:i>=0?{n:CLS[al[i]].name,img:al[i],k:al[i],c:'#9fe7ff'}:{n:'',img:S.ch,k:S.ch};}
+function stWho(w){const al=allies(),i='ABC'.indexOf(w);return w==='K'?{n:'마왕 카이져',img:'demonb',c:'#ff7a8a'}:w==='K2'||w==='K3'?{n:'카이져',img:w==='K2'?'kaiser2':'kaiser3',c:'#e9e6ff'}:w==='N2'?{n:'',img:'kaiser2'}:i>=0?{n:CLS[al[i]].name,img:al[i],k:al[i],c:'#9fe7ff'}:{n:'',img:S.ch,k:S.ch};}
 function stText(w,t){const al=allies(),who=stWho(w);if(t&&typeof t==='object')t=S.ch==='kai'?t.kai:t.o;if(t[0]==='@')t=SAY[t.slice(1)][who.k]||'';return t.replace(/\{([ABC])\}/g,(_,x)=>CLS[al['ABC'.indexOf(x)]].name);}
 function stPage(title,pg,i,n){const who=stWho(pg[0]),more=mq.some(f=>f.story);
   return `<h2>${title}</h2><div class="stry${who.n?' say':''}"><img src="assets/${who.img}.webp" alt=""><div>${who.n?`<b style="color:${who.c}">${who.n}</b>`:''}<p>${stText(pg[0],pg[1])}</p></div></div><button>${i<n-1?'계속':'확인'}</button>${more?'<button class="skip" data-act="skipstory">건너뛰기</button>':''}<span class="pg">${i+1} / ${n}</span>`;}
