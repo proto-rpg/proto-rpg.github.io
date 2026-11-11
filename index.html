@@ -585,9 +585,14 @@ const SLK=['wpn','hat','armor','glove','shoe','acc'];
 const OPT={atkPct:{n:'공격력',r:[2,6]},hpPct:{n:'최대 체력',r:[2,6]},crit:{n:'치명타 확률',r:[3,9]},critDmg:{n:'치명타 피해',r:[4,12]},goldPct:{n:'골드 획득',r:[3,10]},expPct:{n:'경험치 획득',r:[2,6]},dmgRed:{n:'받는 피해 감소',r:[1,3]}};
 const HUE=[0,25,200,330,350,210,170,260,230];for(let i=9;i<29;i++)HUE.push((i*47)%360);
 const r1=v=>Math.round(v*10)/10;
-function rollOpts(g){const o=[],keys=Object.keys(OPT);/* 같은 옵션이 겹쳐 나올 수 있다 (공격력·공격력·공격력도 가능) */
-  for(let i=0;i<GRADE[g].o;i++){const k=keys[Math.floor(Math.random()*keys.length)];
-  const r=OPT[k].r;o.push([k,r1((r[0]+Math.random()*(r[1]-r[0]))*(1+g*0.15))]);}return o;}
+/* 옵션 줄마다 등급이 따로 있다(일반·레어·유니크·전설). 등급이 높을수록 수치가 크고, 재설정해도 줄의 등급은 내려가지 않는다 */
+const OGM=[0.7,1.1,1.6,2.4],OGW=[60,28,10,2];
+const rollOG=()=>{let r=Math.random()*100;for(let i=0;i<4;i++){r-=OGW[i];if(r<0)return i;}return 0;};
+/* 예전 장비(등급 없는 옵션)는 수치로 등급을 추정한다 */
+const optG=x=>x[2]!==undefined?x[2]:(()=>{const lo=OPT[x[0]].r[0];let g=0;for(let i=1;i<4;i++)if(x[1]>=lo*OGM[i])g=i;return g;})();
+function rollOpts(g,prev){const o=[],keys=Object.keys(OPT);/* 같은 옵션이 겹쳐 나올 수 있다 (공격력·공격력·공격력도 가능) */
+  for(let i=0;i<GRADE[g].o;i++){const k=keys[Math.floor(Math.random()*keys.length)],og=Math.max(rollOG(),prev&&prev[i]?optG(prev[i]):0);
+  const r=OPT[k].r;o.push([k,r1((r[0]+Math.random()*(r[1]-r[0]))*OGM[og]),og]);}return o;}
 function rollItem(k,t,g){return{id:++S.iid,k,t,g,q:Math.round((0.88+Math.random()*0.24)*100)/100,amp:0,o:rollOpts(g)};}
 const AMPMAX=10,AMPP=[100,95,90,80,70,60,50,40,30,20];
 const iRaw=it=>SLOT[it.k].v(it.t)*GRADE[it.g].m*it.q*(1+it.amp*0.06);
@@ -617,7 +622,7 @@ function bagAdd(it){S.bag.push(it);while(S.bag.length>BAGMAX){let w=0;for(let i=
 function equipItem(it){if(S.lv<iLv(it))return false;const i=S.bag.indexOf(it);if(i<0)return false;S.bag.splice(i,1);const cur=S.eq[it.k];S.eq[it.k]=it;if(cur)bagAdd(cur);P.hp=Math.min(P.hp,maxHp());return true;}
 function salvage(it){const i=S.bag.indexOf(it);if(i<0)return 0;S.bag.splice(i,1);const v=salvVal(it);S.gold+=v;return v;}
 function amplify(it){if(it.amp>=AMPMAX||S.gold<ampCost(it))return null;S.gold-=ampCost(it);const ok2=Math.random()*100<AMPP[it.amp];if(ok2)it.amp++;return ok2;}
-function reroll(it){if(!it.g||S.gold<rerollCost(it))return false;S.gold-=rerollCost(it);it.o=rollOpts(it.g);return true;}
+function reroll(it){if(!it.g||S.gold<rerollCost(it))return false;S.gold-=rerollCost(it);it.o=rollOpts(it.g,it.o);return true;}
 const shopTiers=()=>WEAPONS.map((w,i)=>i).filter(i=>WEAPONS[i].lv<=S.lv).slice(-2).reverse();
 const shopItem=(k,t)=>({id:0,k,t,g:0,q:1,amp:0,o:[]});
 const shopPrice=t=>Math.round(tierGold(t)*300+150);
@@ -1628,11 +1633,11 @@ function renderPanel(){
       h+=`<div class="ovl" data-act="isel" data-k="0"><div class="idet" data-act="noop" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center"><div class="dslot" style="width:13cqh;--g:${G.c}">${IMGS(sel,'66%')}</div><div><div class="sub">${G.n} ${SLOT[sel.k].slot}${eq?' · 장착 중':''}</div><div class="name" style="color:${G.c};font-size:3.6cqh">${iName(sel)}${sel.amp?` +${sel.amp}`:''}</div>
         <div class="sub">${iLv(sel)}레벨부터 장착 · 품질 ${Math.round(sel.q*100)}%</div></div></div><button class="btn" data-act="isel" data-k="0" aria-label="닫기">닫기</button></div>
         <div class="istat"><b>${SLOT[sel.k].stat} +${kor(iMain(sel))}${pc}</b>${df?`<span style="color:${df>0?'#58d08a':'#ff8a8a'}">${df>0?'▲':'▼'} ${kor(Math.abs(SLOT[sel.k].pct?r1(df):Math.round(df)))}${pc}</span>`:''}</div>
-        ${sel.o.length?`<div class="iopts">${sel.o.map(x=>`<span>${OPT[x[0]].n} +${x[1]}%</span>`).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
+        ${sel.o.length?`<div class="iopts">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><b style="font-weight:400;opacity:.85">${GRADE[og].n}</b> ${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
         <div class="ibtns"><button class="btn" data-act="iamp" ${sel.amp>=AMPMAX||S.gold<ampCost(sel)?'disabled':''}>${sel.amp>=AMPMAX?'증폭 최대':`증폭 +${sel.amp+1} · ${kor(ampCost(sel))}G · 성공 ${AMPP[sel.amp]}%`}</button>
           ${sel.g?`<button class="btn" data-act="ireroll" ${S.gold<rerollCost(sel)?'disabled':''}>옵션 재설정 · ${kor(rerollCost(sel))}G</button>`:''}</div>
         <div class="ibtns">${eq?'':`<button class="btn danger" data-act="isalv" style="flex:1">분해 +${kor(salvVal(sel))}G</button><button class="btn gold" data-act="ieq" style="flex:1" ${lock?'disabled':''}>${lock?iLv(sel)+'레벨 필요':'장착'}</button>`}</div>
-        <div class="sub">증폭은 기본 능력치를 단계마다 6% 올려요. 실패하면 골드만 사라져요.</div></div></div>`;}
+        <div class="sub">증폭은 기본 능력치를 단계마다 6% 올려요. 실패하면 골드만 사라져요.${sel.g?' 옵션은 줄마다 등급(일반 60% · 레어 28% · 유니크 10% · 전설 2%)이 있고 등급이 높을수록 수치가 커요. 재설정하면 종류와 수치는 바뀌지만 줄의 등급은 내려가지 않아요.':''}</div></div></div>`;}
     h+=S.lv<=120?`<p class="note">슬롯 강화는 121레벨부터 열려요. 강화 단계는 장비를 바꿔도 슬롯에 남아요.</p>`
      :`<div class="row"><button class="btn" data-act="uitog" data-k="enh">슬롯 강화 ${UI.enh?'접기 ▲':'펼치기 ▼'} <span class="lbl">한도 +${enhCap()}</span></button><button class="btn gold" data-act="enhAll">가능한 만큼 전체 강화</button></div>
       ${UI.enh?SLK.map(k=>{const n=S.enh[k]||0,has=S.eq[k],mx=n>=enhCap();return `<div class="item"><div><div class="name">${ENHN[k]} <span class="lbl">+${n}</span></div><div class="sub">1단계마다 능력치 ${Math.round((EM[k]-1)*1000)/10}% 증가${has?'':' · 장비가 없어요'}</div></div><button class="btn" data-act="enh" data-k="${k}" ${!has||mx||S.gold<enhCost(n)?'disabled':''}>${mx?'한도':kor(enhCost(n))+'G'}</button></div>`;}).join(''):''}`;
