@@ -1790,7 +1790,9 @@ if(st.requestFullscreen&&document.fullscreenEnabled){const bf=$('#bF');bf.hidden
 cv.addEventListener('contextmenu',e=>e.preventDefault());
 const keys={};
 const actOf=k=>{const K=S.opt.keys;for(const a in K)if(K[a]===k)return a;return null;};
-addEventListener('keydown',e=>{if(selecting)return;const k=e.key.toLowerCase();
+/* 입력칸(쿠폰·저장 코드)에 글자를 치는 중에는 게임 단축키로 가로채지 않는다 */
+const typing=e=>{const t=e.target;return !!(t&&(t.tagName==='INPUT'&&t.type!=='range'&&t.type!=='checkbox'||t.tagName==='TEXTAREA'));};
+addEventListener('keydown',e=>{if(selecting||typing(e))return;const k=e.key.toLowerCase();
   if(waitKey){e.preventDefault();if(k!=='escape'){for(const a in S.opt.keys)if(S.opt.keys[a]===k)S.opt.keys[a]=S.opt.keys[waitKey];S.opt.keys[waitKey]=k;save();}
     waitKey=null;renderPanel();return;}
   if(k==='escape'){if(editing)endEdit();else if(tab)closePop();else openPop('set');return;}
@@ -1799,7 +1801,7 @@ addEventListener('keydown',e=>{if(selecting)return;const k=e.key.toLowerCase();
   else if(a==='jump'){P.manual=1.5;jump();}else if(a==='down'){P.manual=1.5;dropDown();}
   else if(a==='atk')atkHold=1;else if(SKKEY.includes(a))want[SKKEY.indexOf(a)]=1;
   else if(a==='boss'){if(mode==='boss')endBoss(false);else startBoss();}});
-addEventListener('keyup',e=>{const a=actOf(e.key.toLowerCase());
+addEventListener('keyup',e=>{if(typing(e))return;const a=actOf(e.key.toLowerCase());
   if(a==='left'){keys.l=0;P.dir=keys.r?1:0;}
   if(a==='right'){keys.r=0;P.dir=keys.l?-1:0;}
   if(a==='atk')atkHold=0;});
