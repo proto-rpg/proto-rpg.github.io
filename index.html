@@ -607,7 +607,7 @@ const mpCost=n=>Math.round(maxMp()*MPC[n]*(1-Math.min(0.6,pas('mpCost'))));
 const findItem=id=>{for(const k of SLK)if(S.eq[k]&&S.eq[k].id===id)return S.eq[k];return S.bag.find(x=>x.id===id);};
 const isEq=it=>S.eq[it.k]===it;
 function bagAdd(it){S.bag.push(it);while(S.bag.length>BAGMAX){let w=0;for(let i=1;i<S.bag.length;i++){const a=S.bag[i],b=S.bag[w];if(a.g<b.g||(a.g===b.g&&iScore(a)<iScore(b)))w=i;}
-  const x=S.bag.splice(w,1)[0];S.gold+=salvVal(x);if(P)addText(`가방 가득 · 분해 +${kor(salvVal(x))}G`,P.x,P.y-104,'#f2c14e');}}
+  const x=S.bag.splice(w,1)[0];S.gold+=salvVal(x);if(P)addText(`가방 가득 · 분해 +${kor(salvVal(x))}`,P.x,P.y-104,'#fff1c4',0,1);}}
 function equipItem(it){if(S.lv<iLv(it))return false;const i=S.bag.indexOf(it);if(i<0)return false;S.bag.splice(i,1);const cur=S.eq[it.k];S.eq[it.k]=it;if(cur)bagAdd(cur);P.hp=Math.min(P.hp,maxHp());return true;}
 function salvage(it){const i=S.bag.indexOf(it);if(i<0)return 0;S.bag.splice(i,1);const v=salvVal(it);S.gold+=v;return v;}
 function amplify(it){if(it.amp>=AMPMAX||S.gold<ampCost(it))return null;S.gold-=ampCost(it);const ok2=Math.random()*100<AMPP[it.amp];if(ok2)it.amp++;return ok2;}
@@ -619,6 +619,8 @@ function shopBuy(k,t){t=+t;if(!shopTiers().includes(t)||!SLOT[k])return false;co
   if(S.gold<c||S.bag.length>=BAGMAX||(cur&&iScore(it)<=iScore(cur)))return false;S.gold-=c;it.id=++S.iid;gainItem(it);return true;}
 /* 쿠폰: 코드 → 골드. rep이 있으면 여러 번 쓸 수 있다(시험용) */
 const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1}};
+/* 금액별 1회용 쿠폰 3장씩: MAN100A(100만) · MAN1000A(1,000만) · EOK1A(1억) · EOK10A(10억) · EOK100A(100억) · EOK1000A(1,000억) */
+[['MAN100',1e6],['MAN1000',1e7],['EOK1',1e8],['EOK10',1e9],['EOK100',1e10],['EOK1000',1e11]].forEach(([n,g])=>['A','B','C'].forEach(x=>COUPON[n+x]={g}));
 function cpUse(v){const code=String(v||'').trim().toUpperCase(),c=COUPON[code];if(!S.cpn)S.cpn=[];
   if(!code)return [0,'쿠폰 코드를 입력해 주세요.'];if(!c)return [0,'없는 쿠폰 코드예요. 철자를 확인해 주세요.'];
   if(!c.rep&&S.cpn.includes(code))return [0,'이미 사용한 쿠폰이에요.'];
@@ -626,7 +628,7 @@ function cpUse(v){const code=String(v||'').trim().toUpperCase(),c=COUPON[code];i
 function gainItem(it){
   if(it.k==='wpn'&&!(S.dex[it.t]>=it.g))S.dex[it.t]=it.g;
   const cur=S.eq[it.k],nm=`${GRADE[it.g].n} ${iName(it)}`,c=GRADE[it.g].c;
-  if(S.autoSalv&&it.g===0&&cur&&iScore(it)<=iScore(cur)){const v=salvVal(it);S.gold+=v;addText(`분해 +${kor(v)}G`,P.x,P.y-90,'#f2c14e');dirty=true;return;}
+  if(S.autoSalv&&it.g===0&&cur&&iScore(it)<=iScore(cur)){const v=salvVal(it);S.gold+=v;addText(`분해 +${kor(v)}`,P.x,P.y-90,'#fff1c4',0,1);dirty=true;return;}
   S.bag.push(it);
   if(S.autoEq!==false&&S.lv>=iLv(it)&&(!cur||iScore(it)>iScore(cur))){equipItem(it);sfx('loot');flash(`${nm} 획득 · 자동 장착! ${SLOT[it.k].stat} +${kor(iMain(it))}${SLOT[it.k].pct?'%':''}`,c);}
   else{S.bag.pop();bagAdd(it);if(it.g>=1){sfx('loot');flash(`${nm} 획득! 인벤토리에서 확인하세요`,c);}}
@@ -908,7 +910,7 @@ function showEvt(k,d,w){evt={k,t:d,m:d,w};}
 let wantWhirl=false,mode='hunt',mobs=[],boss=null,mates=[],shots=[],zones=[],waves=[],texts=[],fx=[],bossTime=0,spawnT=0,time=0,shake=0,
     paused=false,dirty=true,wantStrike=false,banner=null,want=[0,0,0,0,0],atkHold=0,cutin=null;
 const SKK=['','skT','skT2','skT3','skT4'],SKKEY=['','strike','whirl','s3','s4'],SKLV=[0,10,30,70,120];
-function addText(s,x,y,c,big){texts.push({s,x,y,c,t:1,big});}
+function addText(s,x,y,c,big,coin){texts.push({s,x,y,c,t:1,big,coin});}
 function flash(s,c){if(S.opt.banner)banner={s,c:c||'#fff',t:1.8};}
 
 /* ---------- 소리 (녹음된 효과음·배경음악 파일 재생) ---------- */
@@ -985,7 +987,7 @@ function hit(t,r,col){
     if(P.dead<=0)P.hp=Math.min(maxHp(),P.hp+maxHp()*KHEAL*clamp(3.2-gs()/18,1,3));
     if(Math.random()<POTDROP){if(Math.random()<0.4)S.mpS=(S.mpS||0)+1;else S.potions++;fx.push({loot:1,k:'gear5',c:'#ff8a8a',x:t.x,y:F[t.f].y-24,t:0.9,m:0.9});}
     fx.push({ring:1,x:t.x,y:F[t.f].y-16,t:0.3,m:0.3,c:'255,255,255'});
-    addText(`+${kor(g)}G`,t.x,F[t.f].y-20,'#f2c14e');dirty=true;
+    addText(`+${kor(g)}`,t.x,F[t.f].y-20,'#fff1c4',0,1);dirty=true;
   }
 }
 function hurtPlayer(a,pf){
@@ -1460,7 +1462,9 @@ function drawHud(){
   bar(0,H-5,W,5,S.lv>=MAXLV?1:S.exp/expNeed(S.lv),'#c9e65a','rgba(0,0,0,.6)');
   if(banner){cx.textAlign='center';cx.globalAlpha=Math.min(1,banner.t*2);panel(250,mode==='boss'?68:40,300,26,13);
     cx.fillStyle=banner.c;cx.font='13px "Black Han Sans", sans-serif';cx.fillText(banner.s,400,mode==='boss'?86:58);cx.globalAlpha=1;}
-  for(const t of texts){cx.globalAlpha=Math.min(1,t.t*1.6);cx.textAlign='center';{const pop=1+Math.max(0,t.t-0.82)*(t.big?3.2:1.4);cx.font=Math.round((t.big?21:16)*pop)+'px "Black Han Sans", sans-serif';}
+  for(const t of texts){cx.globalAlpha=Math.min(1,t.t*1.6);cx.textAlign='center';{const pop=1+Math.max(0,t.t-0.82)*(t.big?3.2:1.4);cx.font=Math.round((t.coin?12:t.big?21:16)*pop)+'px "Black Han Sans", sans-serif';}
+    /* 골드 획득은 피해 숫자와 헷갈리지 않게: 작은 글씨 + 동전 그림, G 글자 없음 */
+    if(t.coin){const im=getImg('ui_i0'),w=cx.measureText(t.s).width,ix=t.x-w/2-8;cx.lineWidth=3;cx.strokeStyle='rgba(60,36,6,.9)';cx.strokeText(t.s,t.x+7,t.y);cx.fillStyle=t.c;cx.fillText(t.s,t.x+7,t.y);if(ok(im))cx.drawImage(im,ix-1,t.y-12,14,14);continue;}
     cx.lineWidth=4;cx.strokeStyle='rgba(30,20,20,.85)';cx.strokeText(t.s,t.x,t.y);cx.fillStyle=t.c;cx.fillText(t.s,t.x,t.y);}
   cx.globalAlpha=1;
 }
