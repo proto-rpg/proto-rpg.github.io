@@ -1035,7 +1035,7 @@ function endBoss(win){
 function bossPattern(){
   boss.anim=0.9;
   const r=Math.random(),warn=Math.max(0.75,1.15-S.stage*0.03);
-  if(S.stage>=4&&r<0.3){for(let i=0;i<3;i++)zones.push({x:10+Math.random()*(boss.x-100),w:80,t:warn+0.2,m:warn+0.2,dmg:boss.atk*2,pf:PF.multi});}
+  if(S.stage>=4&&r<0.3){for(let i=0;i<3;i++)zones.push({x:10+Math.random()*(W-100),w:80,t:warn+0.2,m:warn+0.2,dmg:boss.atk*2,pf:PF.multi});}
   else if(r<0.65)zones.push({x:P.x-60,w:120,t:warn,m:warn,dmg:boss.atk*2.5,pf:PF.aim});
   else waves.push({x:boss.x,warn:0.85,hit:false,dmg:boss.atk*2});
   sfx('warn');boss.patT=Math.max(1.3,2.7-S.stage*0.13);
@@ -1070,7 +1070,7 @@ function walk(dir,dt,sp){P.x+=dir*sp*dt;P.face=dir;P.moving=true;}
 function ai(dt){
   if(!P.gr)return;
   let tf,tx;
-  if(mode==='boss'&&boss){tf=0;tx=boss.x-(C().rng>100?190:55);if(zones.length)return;}
+  if(mode==='boss'&&boss){tf=0;const d=C().rng>100?190:55,bh=P.x>boss.x+boss.w/2;tx=bh?Math.min(W-16,boss.x+boss.w+d):boss.x-d;if(zones.length)return;}
   else{
     P.aiT-=dt;
     if(P.aiT<=0||!P.tgt||P.tgt.dead){P.aiT=0.35;let best=null,bc=1e9;
@@ -1078,8 +1078,9 @@ function ai(dt){
       const hr=P.hp/maxHp(),cap=hr<0.4?0:hr<0.65?1:3;
       for(const m of mobs){if(m.dead)continue;const c=Math.abs(m.x-P.x)+Math.abs(m.f-P.f)*170+(m.f>cap?2000:0);if(c<bc){bc=c;best=m;}}P.tgt=best;}
     if(!P.tgt)return;tf=P.tgt.f;tx=P.tgt.x;
+    if(C().rng>100&&tf!==P.f&&Math.abs(F[tf].y-P.y)<=160&&Math.abs(tx-P.x)<C().rng*0.8){P.face=Math.sign(tx-P.x)||P.face;return;}
   }
-  if(tf===P.f){const dx=tx-P.x;if(Math.abs(dx)>(mode==='boss'?6:(C().rng>100?C().rng*0.65:30)))walk(Math.sign(dx),dt,160);else P.face=mode==='boss'?1:(Math.sign(dx)||1);}
+  if(tf===P.f){const dx=tx-P.x;if(Math.abs(dx)>(mode==='boss'?6:(C().rng>100?C().rng*0.65:30)))walk(Math.sign(dx),dt,160);else P.face=mode==='boss'?(P.x>boss.x+boss.w/2?-1:1):(Math.sign(dx)||1);}
   else if(tf>P.f){const n=F[P.f+1],gx=clamp(tx,n.x1+18,n.x2-18);
     if(Math.abs(gx-P.x)>8)walk(Math.sign(gx-P.x),dt,160);else jump();}
   else{
@@ -1128,9 +1129,9 @@ const tgtY=t=>t.w?F[0].y-t.h*0.5:F[t.f].y-(t.h||30)*0.5-(t.fly?18:0);
 const pool=()=>mode==='boss'?(boss?[boss]:[]):mobs.filter(m=>!m.dead&&m.born<=0);
 function skillTargets(s){
   const px=P.x,py=P.y-30,L=pool(),d=t=>Math.hypot(tgtX(t)-px,tgtY(t)-py);
-  if(mode==='boss')P.face=1;
+  if(mode==='boss'){if(boss)P.face=P.x>boss.x+boss.w/2?-1:1;}
   else if(s.kind==='rain'||s.kind==='line'||s.kind==='dash'||s.kind==='snipe'){const n=L.filter(m=>m.f===P.f).sort((a,b)=>Math.abs(a.x-px)-Math.abs(b.x-px))[0];if(n)P.face=Math.sign(n.x-px)||P.face;}
-  const half=t=>t.w?t.w/2:0,fwd=t=>(tgtX(t)-px)*P.face>-20,same=t=>t.w?P.f===0:t.f===P.f;
+  const half=t=>t.w?t.w/2:0,fwd=t=>(tgtX(t)-px)*P.face>-20,same=t=>t.w?(P.f===0||C().rng>100):t.f===P.f;
   switch(s.kind){
     case 'nova':case 'whirl':return L.filter(t=>d(t)<s.R+half(t));
     case 'rain':{const ax=px+P.face*170;return L.filter(t=>Math.abs(tgtX(t)-ax)<160+half(t)&&Math.abs(tgtY(t)-py)<150);}
@@ -1164,10 +1165,10 @@ function doSkill(s,t,mult){
     case 'whirl':fx.push({whirl:1,x:px,y:py,t:0.9,m:0.9});
       for(let k=0;k<s.hits;k++)setTimeout(()=>{if(k%2===0){P.anim=P.animD=0.3;P.face*=-1;}t.forEach(m=>{if(alive(m))hit(m,rollDmg(mult),col);});},k*120);break;
     case 'rain':fx.push({rain:1,x:px+P.face*170,y:P.y,w:330,t:0.85,m:0.85});for(let k=0;k<s.hits;k++)go(160+k*130);break;
-    case 'line':{const fl=F[P.f],x1=P.face>0?(mode==='boss'&&boss?boss.x+boss.w:fl.x2):fl.x1;
+    case 'line':{const fl=F[P.f],x1=P.face>0?(mode==='boss'&&boss?boss.x+boss.w:fl.x2):(mode==='boss'&&boss&&P.x>boss.x?boss.x:fl.x1);
       fx.push({beam:1,x0:px+P.face*14,x1,y:py,t:0.55,m:0.55});for(let k=0;k<s.hits;k++)go(60+k*70);break;}
     case 'quake':fx.push({strike:1,R:200,x:px,y:py,t:0.6,m:0.6});fx.push({quake:1,y:P.y,x1:F[P.f].x1,x2:F[P.f].x2,t:0.55,m:0.55,c:col});shake=0.4;for(let k=0;k<s.hits;k++)go(80+k*130);break;
-    case 'snipe':{const fl=F[P.f],x1=P.face>0?(mode==='boss'&&boss?boss.x+boss.w:fl.x2):fl.x1;
+    case 'snipe':{const fl=F[P.f],x1=P.face>0?(mode==='boss'&&boss?boss.x+boss.w:fl.x2):(mode==='boss'&&boss&&P.x>boss.x?boss.x:fl.x1);
       fx.push({beam:1,big:1,x0:px+P.face*14,x1,y:py,t:0.7,m:0.7});shake=0.3;go(120);go(300);break;}
     case 'chain':{const pts=[[px,py-6]].concat(t.map(m=>[tgtX(m),tgtY(m)]));if(t.length===1&&t[0].w)pts.push([tgtX(t[0])+40,tgtY(t[0])-50],[tgtX(t[0])-30,tgtY(t[0])+30]);
       for(let k=0;k<s.hits;k++){setTimeout(()=>fx.push({chain:1,pts,t:0.24,m:0.24,c:col}),k*150);go(k*150+40);}
@@ -1185,7 +1186,7 @@ function doSkill(s,t,mult){
     case 'stars':multi.forEach((m,i)=>{for(let k=0;k<s.hits;k++){const dl=i*40+k*110;
       setTimeout(()=>{if(alive(m))fx.push({proj:1,k:'star',x0:P.x+P.face*10,y0:P.y-34,x1:tgtX(m),y1:tgtY(m),t:0.12,m:0.12,c:col});},dl);
       setTimeout(()=>{if(alive(m))hit(m,rollDmg(mult),col);},dl+120);}});break;
-    case 'dash':{const fl=F[P.f];let x1=clamp(px+P.face*220,fl.x1+14,fl.x2-14);if(mode==='boss'&&boss&&P.face>0)x1=Math.min(x1,boss.x-14);
+    case 'dash':{const fl=F[P.f];let x1=clamp(px+P.face*220,fl.x1+14,fl.x2-14);if(mode==='boss'&&boss){if(px<boss.x)x1=Math.min(x1,boss.x-14);else x1=Math.max(x1,Math.min(W-14,boss.x+boss.w+14));}
       fx.push({dash:1,x0:px,x1,y:P.y,t:0.45,m:0.45});P.x=x1;P.manual=0.4;for(let k=0;k<s.hits;k++)go(80+k*90);break;}
   }
 }
@@ -1205,15 +1206,19 @@ function update(dt){
   if(P.dir){walk(P.dir,dt,210);P.manual=1.5;}
   else if(P.manual>0)P.manual-=dt;
   else ai(dt);
-  P.x=clamp(P.x,12,mode==='boss'&&boss&&P.f===0?boss.x-14:W-12);
+  P.x=clamp(P.x,12,W-12);
+  /* 보스 몸 안에 겹치면 가까운 쪽으로 부드럽게 밀려난다 (앞으로 순간이동시키지 않는다) */
+  if(mode==='boss'&&boss&&P.f===0&&P.gr&&P.x>boss.x-14&&P.x<boss.x+boss.w+14){const bh=P.x>boss.x+boss.w/2&&boss.x+boss.w+14<W-12;P.x=bh?Math.min(boss.x+boss.w+14,P.x+520*dt):Math.max(boss.x-14,P.x-520*dt);}
   physics(dt);
 
   const c=C();P.atkT-=dt;
   if(P.atkT<=0){
-    const t=mode==='boss'?(boss&&P.gr&&P.f===0&&boss.x-P.x<c.rng&&boss.x+boss.w-P.x>-30?[boss]:[])
-      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&m.f===P.f&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,c.tg);
+    const far=c.rng>100,bd=boss?Math.max(boss.x-P.x,P.x-boss.x-boss.w,0):0;
+    /* 원거리(궁수·마법사)는 다른 층에 있어도 사거리 안이면 맞힌다 */
+    const t=mode==='boss'?(boss&&P.gr&&(P.f===0||far)&&bd<c.rng?[boss]:[])
+      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&(m.f===P.f||(far&&Math.abs(F[m.f].y-P.y)<=160))&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,c.tg);
     if(t.length){P.atkT=c.aspd*(1-Math.min(0.5,pas('aspd')));P.anim=P.animD=c.ad;
-      const t0=t[0];P.face=mode==='boss'?1:(Math.sign(tgtX(t0)-P.x)||P.face);
+      const t0=t[0];P.face=Math.sign(tgtX(t0)-P.x)||P.face;
       if(c.shot){fx.push({proj:1,k:c.shot,x0:P.x+P.face*14,y0:P.y-34,x1:tgtX(t0),y1:tgtY(t0),t:0.14,m:0.14,c:c.col});
         setTimeout(()=>{if(!alive(t0))return;hit(t0,rollDmg(1));
           if(c.splash&&!t0.w)mobs.forEach(m=>{if(m!==t0&&alive(m)&&m.f===t0.f&&Math.abs(m.x-t0.x)<c.splash)hit(m,rollDmg(0.6));});},140);}
@@ -1482,7 +1487,7 @@ const MOV=['.dpad','#bAtk','#bJ2','#k1','#k2','#k3','#k4','#potB','#bB','#bA','#
 function applyPos(){MOV.forEach(sel=>{const el=$(sel),p=S.opt.pos[sel];
   if(p){el.style.left=p.x+'%';el.style.top=p.y+'%';el.style.right='auto';el.style.bottom='auto';}else{el.style.left=el.style.top=el.style.right=el.style.bottom='';}});}
 const UI={sel:0,enh:false,dex:false,hsel:0,pull:null};
-const TITLES={char:'캐릭터',grow:'성장',equip:'인벤토리',skill:'스킬',mate:'동료',town:'마을',set:'설정'};
+const TITLES={char:'캐릭터',grow:'성장',equip:'인벤토리',skill:'스킬',mate:'동료',town:'마을',set:'설정',skin:'스킨',shop:'상점'};
 function sw(k,name,sub){return `<label class="setrow"><div><div>${name}</div><div class="sub">${sub}</div></div><input class="sw" type="checkbox" id="opt-${k}" data-act="opt" data-k="${k}" ${k==='autoSkill'?(S.autoSkill?'checked':''):k==='autoPot'?(S.autoPot?'checked':''):(S.opt[k]?'checked':'')}></label>`;}
 let tab=null,resetArm=false;
 function statRow(k,name,eff){return `<div class="row"><div><div class="lbl">${name}</div><div class="val">${S.st[k]} <span class="lbl">${eff}</span></div></div>
@@ -1493,7 +1498,25 @@ function statEff(k){const c=C(),v=S.st[k];if(k===c.main)return `공격력 +${v*2
 function renderPanel(){
   if(!tab)return;
   let h='';
-  if(tab==='char'){
+  if(tab==='skin'){
+    h+=`<button class="btn" data-act="goto" data-k="char" style="align-self:flex-start">← 캐릭터</button>`;
+    for(const K of SKINS){const o=skOwn(K.id),full=o.every(x=>x),on=skOn()===K.id,nm=K.names[S.ch];
+      h+=`<div class="row"><div class="sec">스킨 · ${K.n} <span class="lbl">${o.filter(x=>x).length} / 4</span></div>${full?`<button class="btn${on?' gold':''}" data-act="skwear" data-k="${K.id}">${on?'입는 중 (벗기)':'입기'}</button>`:''}</div>
+      <div class="skbox"><img src="assets/${S.ch}_${K.id}.webp" alt="" style="${full?'':'filter:brightness(.35) saturate(.4)'}"><div class="skparts">${K.parts.map((pt,i)=>`<div class="item${o[i]?'':' unown'}"><div style="min-width:0"><div class="name" style="font-size:2.9cqh;white-space:nowrap${o[i]?';color:#ffe08a':''}">${nm[i]}</div><div class="sub">${HSTN[pt.st]} +${pt.v}%</div></div>${o[i]?'<span class="lbl">보유</span>':`<button class="btn gold" data-act="skbuy" data-k="${K.id}" data-n="${i}" ${S.gold<K.cost[i]?'disabled':''}>${kor(K.cost[i])}G</button>`}</div>`).join('')}</div></div>
+      <p class="note">부위마다 따로 사고, 산 부위의 능력치는 바로 적용돼요. 네 부위를 다 모아 입으면 모습이 바뀌고 <b style="color:#ffe08a">세트 효과(${K.set.map(([st,v])=>`${HSTN[st]} +${v}%`).join(', ')})</b>가 더해져요.</p>`;}
+    if(!SKINS.length)h+=`<p class="note">아직 스킨이 없어요.</p>`;
+  }else if(tab==='shop'){
+    h+=`<button class="btn" data-act="goto" data-k="town" style="align-self:flex-start">← 마을</button>`;
+    h+=`<div class="row"><div class="sec">상점</div><div class="pts">${kor(S.gold)} G</div></div><div class="lbl" style="margin:.4cqh 0">일반 등급 장비</div>
+    <p class="note">내 레벨에 맞는 일반 등급 장비를 팔아요. 지금 낀 장비보다 좋은 것만 살 수 있고, 사면 바로 장착돼요. 더 높은 등급은 사냥과 보스에서 나와요.</p>
+    ${shopTiers().map(t=>`<div class="grid2">${SLK.map(k=>{const it=shopItem(k,t),cur=S.eq[k],up=!cur||iScore(it)>iScore(cur),pr=shopPrice(t);return `<div class="item${up?'':' unown'}"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${iIcon(it)}.webp" alt="" style="height:6.4cqh"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${iName(it)} <span class="lbl">Lv.${iLv(it)}</span></div><div class="sub">${SLOT[k].stat} +${kor(iMain(it))}${SLOT[k].pct?'%':''}</div></div></div>
+      ${up?`<button class="btn gold" data-act="buygear" data-k="${k}" data-n="${t}" ${S.gold<pr||S.bag.length>=BAGMAX?'disabled':''}>${kor(pr)}G</button>`:'<span class="lbl">착용 장비가 더 좋음</span>'}</div>`;}).join('')}</div>`).join('<div style="height:1cqh"></div>')}
+    <div class="lbl" style="margin:1cqh 0 .4cqh">포션</div>
+    <p class="note">가지고 있으면 자동으로 써요. 체력은 35% 아래로 떨어질 때, 마나는 스킬을 쓸 마나가 모자랄 때예요. 사냥 중에는 작은 것부터, 보스전에서는 큰 것부터 써요.</p>
+    <div class="grid2">${HPK.concat(MPK).map(k=>{const T=POT[k],pr=potP(k);return `<div class="item"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/gear5.webp" alt="" style="height:${T.h>=1?8:T.h>=0.5?6.6:5.2}cqh${T.hp?'':';filter:hue-rotate(215deg) saturate(1.4)'}"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${T.n}</div><div class="sub">${Math.round(T.h*100)}% 회복 · 보유 ${S[k]||0}개</div></div></div>
+      <div style="display:flex;gap:1cqh;flex:none"><button class="btn" data-act="buy" data-k="${k}" data-n="1" ${S.gold<pr?'disabled':''}>${kor(pr)}G</button><button class="btn gold" data-act="buy" data-k="${k}" data-n="10" ${S.gold<pr*10?'disabled':''}>×10</button></div></div>`;}).join('')}</div>`;
+  }else if(tab==='char'){
+    {const K=SKINS[0],n=SKINS.reduce((a,K)=>a+skOwn(K.id).filter(x=>x).length,0);h+=`<div class="item" style="border-color:var(--gold)"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${S.ch}_${K.id}.webp" alt="" style="height:9cqh"><div style="min-width:0"><div class="name">스킨</div><div class="sub">모은 부위 ${n} / ${SKINS.length*4}${skOn()?' · 입는 중':''}</div></div></div><button class="btn gold" data-act="goto" data-k="skin">스킨 보기</button></div>`;}
     h+=`<div class="row"><div class="sec">스탯</div><div class="pts">남은 포인트 ${S.sp}</div></div>
     <div class="grid2">${[C().main,'vit',...['str','dex','int','luk'].filter(k=>k!==C().main)].map(k=>statRow(k,STN[k],statEff(k))).join('')}</div>
     <button class="btn" data-act="auto" ${S.sp?'':'disabled'}>자동 분배 (${STN[C().main]} 3 · 체력 1 · ${STN[C().sub]} 1)</button>
@@ -1501,10 +1524,6 @@ function renderPanel(){
     <div class="row"><span class="lbl">최대 체력</span><span class="val">${kor(maxHp())}</span></div>
     <div class="row"><span class="lbl">경험치</span><span class="val">${S.lv>=MAXLV?'MAX':kor(S.exp)+' / '+kor(expNeed(S.lv))}</span></div>
     <div class="row"><span class="lbl">데미지 상한</span><span class="val">9999경</span></div></div>`;
-    for(const K of SKINS){const o=skOwn(K.id),full=o.every(x=>x),on=skOn()===K.id,nm=K.names[S.ch];
-      h+=`<div class="row"><div class="sec">스킨 · ${K.n} <span class="lbl">${o.filter(x=>x).length} / 4</span></div>${full?`<button class="btn${on?' gold':''}" data-act="skwear" data-k="${K.id}">${on?'입는 중 (벗기)':'입기'}</button>`:''}</div>
-      <div class="skbox"><img src="assets/${S.ch}_${K.id}.webp" alt="" style="${full?'':'filter:brightness(.35) saturate(.4)'}"><div class="skparts">${K.parts.map((pt,i)=>`<div class="item${o[i]?'':' unown'}"><div style="min-width:0"><div class="name" style="font-size:2.9cqh;white-space:nowrap${o[i]?';color:#ffe08a':''}">${nm[i]}</div><div class="sub">${HSTN[pt.st]} +${pt.v}%</div></div>${o[i]?'<span class="lbl">보유</span>':`<button class="btn gold" data-act="skbuy" data-k="${K.id}" data-n="${i}" ${S.gold<K.cost[i]?'disabled':''}>${kor(K.cost[i])}G</button>`}</div>`).join('')}</div></div>
-      <p class="note">부위마다 따로 사고, 산 부위의 능력치는 바로 적용돼요. 네 부위를 다 모아 입으면 모습이 바뀌고 <b style="color:#ffe08a">세트 효과(${K.set.map(([st,v])=>`${HSTN[st]} +${v}%`).join(', ')})</b>가 더해져요.</p>`;}
     {const own=S.ttl||[],sum={};own.forEach(id=>{const T=TTLM[id];if(T)sum[T.st]=(sum[T.st]||0)+T.v;});
     h+=`<div class="row"><div class="sec">칭호 <span class="lbl">${own.length} / ${TTL.length}</span></div><button class="btn" data-act="uitog" data-k="ttl">${UI.ttl?'접기 ▲':'펼치기 ▼'}</button></div>
       <div class="iopts">${Object.keys(sum).length?Object.keys(sum).map(k=>`<span>${HSTN[k]} +${sum[k]}%</span>`).join(''):'<span>아직 얻은 칭호가 없어요</span>'}</div>`;
@@ -1615,14 +1634,7 @@ function renderPanel(){
     DUNG.forEach((d,i)=>{const lock=i>S.maxDg,cur=i===S.dg;
       h+=`<div class="item"><div><div class="name">${d.name} <span class="lbl">권장 ${d.lv}레벨</span></div><div class="sub">${lock?'이전 던전 최종 보스를 잡으면 열려요':`최고 Stage ${i===S.dg?S.stage:(S.prog[i]||1)}/10`}</div></div>
       <button class="btn ${cur?'':'gold'}" data-act="dg" data-k="${i}" ${lock||cur||mode==='boss'?'disabled':''}>${cur?'현재 위치':lock?'잠김':'이동'}</button></div>`;});
-    h+=`<div class="row"><div class="sec">상점</div><div class="pts">${kor(S.gold)} G</div></div><div class="lbl" style="margin:.4cqh 0">일반 등급 장비</div>
-    <p class="note">내 레벨에 맞는 일반 등급 장비를 팔아요. 지금 낀 장비보다 좋은 것만 살 수 있고, 사면 바로 장착돼요. 더 높은 등급은 사냥과 보스에서 나와요.</p>
-    ${shopTiers().map(t=>`<div class="grid2">${SLK.map(k=>{const it=shopItem(k,t),cur=S.eq[k],up=!cur||iScore(it)>iScore(cur),pr=shopPrice(t);return `<div class="item${up?'':' unown'}"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${iIcon(it)}.webp" alt="" style="height:6.4cqh"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${iName(it)} <span class="lbl">Lv.${iLv(it)}</span></div><div class="sub">${SLOT[k].stat} +${kor(iMain(it))}${SLOT[k].pct?'%':''}</div></div></div>
-      ${up?`<button class="btn gold" data-act="buygear" data-k="${k}" data-n="${t}" ${S.gold<pr||S.bag.length>=BAGMAX?'disabled':''}>${kor(pr)}G</button>`:'<span class="lbl">착용 장비가 더 좋음</span>'}</div>`;}).join('')}</div>`).join('<div style="height:1cqh"></div>')}
-    <div class="lbl" style="margin:1cqh 0 .4cqh">포션</div>
-    <p class="note">가지고 있으면 자동으로 써요. 체력은 35% 아래로 떨어질 때, 마나는 스킬을 쓸 마나가 모자랄 때예요. 사냥 중에는 작은 것부터, 보스전에서는 큰 것부터 써요.</p>
-    <div class="grid2">${HPK.concat(MPK).map(k=>{const T=POT[k],pr=potP(k);return `<div class="item"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/gear5.webp" alt="" style="height:${T.h>=1?8:T.h>=0.5?6.6:5.2}cqh${T.hp?'':';filter:hue-rotate(215deg) saturate(1.4)'}"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${T.n}</div><div class="sub">${Math.round(T.h*100)}% 회복 · 보유 ${S[k]||0}개</div></div></div>
-      <div style="display:flex;gap:1cqh;flex:none"><button class="btn" data-act="buy" data-k="${k}" data-n="1" ${S.gold<pr?'disabled':''}>${kor(pr)}G</button><button class="btn gold" data-act="buy" data-k="${k}" data-n="10" ${S.gold<pr*10?'disabled':''}>×10</button></div></div>`;}).join('')}</div>
+    h+=`<div class="sec">상점</div><div class="item" style="border-color:var(--gold)"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/gear5.webp" alt="" style="height:8cqh"><div style="min-width:0"><div class="name">상점</div><div class="sub">일반 등급 장비 · 체력 포션 · 마나 포션</div></div></div><button class="btn gold" data-act="goto" data-k="shop">상점 열기</button></div>
     <div class="sec">반복 의뢰</div>`;
 
     const rw=qRw(),done=S.q.n>=S.q.need;
@@ -1632,7 +1644,7 @@ function renderPanel(){
   {const pe=$('#panel'),st=pe.scrollTop;pe.innerHTML=h;pe.scrollTop=st;}dirty=false;
 }
 function openPop(t){if(tab===t)return closePop();tab=t;resetArm=false;$('#popT').textContent=TITLES[t];$('#pop').hidden=false;
-  document.querySelectorAll('.menu button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===t));$('#bG').setAttribute('aria-pressed',t==='set');$('#pop').classList.toggle('wide',t==='equip');UI.sel=0;renderPanel();$('#panel').scrollTop=0;}
+  document.querySelectorAll('.menu button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===({skin:'char',shop:'town'}[t]||t)));$('#bG').setAttribute('aria-pressed',t==='set');$('#pop').classList.toggle('wide',t==='equip');UI.sel=0;renderPanel();$('#panel').scrollTop=0;}
 function closePop(){tab=null;$('#pop').hidden=true;document.querySelectorAll('.menu button').forEach(b=>b.setAttribute('aria-pressed','false'));$('#bG').setAttribute('aria-pressed','false');}
 $('#bG').addEventListener('click',()=>openPop('set'));
 function applyOpt(){$('.dpad').hidden=!S.opt.pad;for(const k in S.opt.pos)if(!MOV.includes(k))delete S.opt.pos[k];if(!S.opt.dmg)texts=texts.filter(t=>t.big);
@@ -1685,6 +1697,7 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='filt'){UI.filt=k;}
   else if(a==='aeq'){const n=autoEquipAll();if(n){sfx('lvl');flash(`더 좋은 장비 ${n}개 장착`,'#f2c14e');}else flash('지금 장비가 가장 좋아요','#cfe6df');}
   else if(a==='isel'){UI.sel=UI.sel===+k?0:+k;}
+  else if(a==='goto'){sfx('click');tab=null;openPop(k);return;}
   else if(a==='uitog'){UI[k]=!UI[k];}
   else if(a==='tog'){S[k]=k==='autoEq'?S.autoEq===false:!S[k];}
   else if(a==='ieq'){const it=findItem(UI.sel);if(it&&equipItem(it)){sfx('click');UI.sel=0;}}
