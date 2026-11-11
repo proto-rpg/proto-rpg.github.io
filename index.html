@@ -617,6 +617,12 @@ const shopItem=(k,t)=>({id:0,k,t,g:0,q:1,amp:0,o:[]});
 const shopPrice=t=>Math.round(tierGold(t)*300+150);
 function shopBuy(k,t){t=+t;if(!shopTiers().includes(t)||!SLOT[k])return false;const it=shopItem(k,t),cur=S.eq[k],c=shopPrice(t);
   if(S.gold<c||S.bag.length>=BAGMAX||(cur&&iScore(it)<=iScore(cur)))return false;S.gold-=c;it.id=++S.iid;gainItem(it);return true;}
+/* 쿠폰: 코드 → 골드. rep이 있으면 여러 번 쓸 수 있다(시험용) */
+const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1}};
+function cpUse(v){const code=String(v||'').trim().toUpperCase(),c=COUPON[code];if(!S.cpn)S.cpn=[];
+  if(!code)return [0,'쿠폰 코드를 입력해 주세요.'];if(!c)return [0,'없는 쿠폰 코드예요. 철자를 확인해 주세요.'];
+  if(!c.rep&&S.cpn.includes(code))return [0,'이미 사용한 쿠폰이에요.'];
+  if(!c.rep)S.cpn.push(code);S.gold+=c.g;save();return [1,`${kor(c.g)} G를 받았어요.`];}
 function gainItem(it){
   if(it.k==='wpn'&&!(S.dex[it.t]>=it.g))S.dex[it.t]=it.g;
   const cur=S.eq[it.k],nm=`${GRADE[it.g].n} ${iName(it)}`,c=GRADE[it.g].c;
@@ -1558,6 +1564,8 @@ function renderPanel(){
     ${UI.sv?`<textarea id="svBox" class="svbox" readonly>${UI.sv}</textarea><p class="note">${UI.svMsg||''}</p>`:''}
     <div class="setrow"><span>저장 코드 불러오기</span><button class="btn" data-act="svIn">${UI.svIn?'닫기':'붙여 넣기'}</button></div>
     ${UI.svIn?`<textarea id="svPaste" class="svbox" placeholder="다른 기기에서 복사한 저장 코드를 여기에 붙여 넣으세요">${UI.svArm?UI.svHold||'':''}</textarea><button class="btn gold" data-act="svLoad">${UI.svArm?'한 번 더 누르면 지금 기기의 진행을 덮어써요':'이 코드로 불러오기'}</button>${UI.svErr?`<p class="note" style="color:#ff9a9a">${UI.svErr}</p>`:''}`:''}
+    <div class="setrow"><span>쿠폰</span><button class="btn" data-act="cpIn">${UI.cpIn?'닫기':'쿠폰 입력'}</button></div>
+    ${UI.cpIn?`<input id="cpCode" class="svbox" style="height:auto;min-height:0;padding:1.6cqh 2cqh;text-transform:uppercase" maxlength="20" autocomplete="off" autocapitalize="characters" placeholder="쿠폰 코드를 입력하세요" value="${UI.cpHold||''}"><button class="btn gold" data-act="cpUse">쿠폰 사용</button>${UI.cpMsg?`<p class="note" style="color:${UI.cpOk?'#ffe08a':'#ff9a9a'}">${UI.cpMsg}</p>`:''}`:''}
     <button class="btn danger" data-act="reset">${resetArm?`한 번 더 누르면 ${C().name}의 진행이 지워져요`:`${C().name} 처음부터 다시`}</button>
     <p class="note">프로토타입 · 던전 10개 · 1~200레벨 · 4차 전직(각성)까지</p>`;
   }else if(tab==='equip'){
@@ -1681,6 +1689,8 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='skbuy'){skBuy(k,+b.dataset.n);}
   else if(a==='skwear'){if(skFull(k)){skFix().on=S.skin.on===k?'':k;sfx('click');getAnim(sprK()+'_atk');getAnim(sprK()+'_walk');}}
   else if(a==='svOut'){save();UI.sv=svExport();UI.svMsg='아래 코드를 전부 복사하세요.';try{navigator.clipboard.writeText(UI.sv).then(()=>{UI.svMsg='복사했어요. 새 기기의 설정 → 저장 코드 불러오기에 붙여 넣으세요.';renderPanel();}).catch(()=>{});}catch(e){}}
+  else if(a==='cpIn'){UI.cpIn=!UI.cpIn;UI.cpMsg='';UI.cpHold='';}
+  else if(a==='cpUse'){const v=($('#cpCode')||{}).value||'';const [ok,msg]=cpUse(v);UI.cpOk=ok;UI.cpMsg=msg;UI.cpHold=ok?'':v.toUpperCase();if(ok){sfx('loot');dirty=true;}}
   else if(a==='svIn'){UI.svIn=!UI.svIn;UI.svArm=0;UI.svErr='';}
   else if(a==='svLoad'){const v=($('#svPaste')||{}).value||UI.svHold||'';const d=svParse(v);if(!d){UI.svErr='저장 코드가 올바르지 않아요. 처음부터 끝까지 빠짐없이 복사했는지 확인해 주세요.';UI.svArm=0;}
     else if(!UI.svArm){UI.svArm=1;UI.svHold=v;UI.svErr='';}else{svApply(d);UI.svArm=0;UI.svIn=false;UI.sv='';closePop();showSelect();return;}}
