@@ -1549,10 +1549,17 @@ function renderPanel(){
     h+=`<div class="row"><div class="sec">스탯</div><div class="pts">남은 포인트 ${S.sp}</div></div>
     <div class="grid2">${[C().main,'vit',...['str','dex','int','luk'].filter(k=>k!==C().main)].map(k=>statRow(k,STN[k],statEff(k))).join('')}</div>
     <button class="btn" data-act="auto" ${S.sp?'':'disabled'}>자동 분배 (${STN[C().main]} 3 · 체력 1 · ${STN[C().sub]} 1)</button>
-    <div class="grid2"><div class="row"><span class="lbl">공격력</span><span class="val">${kor(baseAtk())}</span></div>
-    <div class="row"><span class="lbl">최대 체력</span><span class="val">${kor(maxHp())}</span></div>
     <div class="row"><span class="lbl">경험치</span><span class="val">${S.lv>=MAXLV?'MAX':kor(S.exp)+' / '+kor(expNeed(S.lv))}</span></div>
-    <div class="row"><span class="lbl">데미지 상한</span><span class="val">9999경</span></div></div>`;
+    <div class="sec">세부 능력치</div>
+    <div class="grid2">${(()=>{const pc=v=>r1(v*100)+'%',df=defAll(),R=[
+      ['공격력',kor(Math.round(baseAtk()*(1+pas('atkPct'))))],['최대 체력',kor(maxHp())],
+      ['치명타 확률',pc(critRate())],['치명타 피해',pc(1.6+pas('critDmg')+optSum('critDmg'))],
+      ['방어력',kor(Math.round(df))+' (피해 -'+pc(1-(0.5+0.5*220/(220+df)))+')'],['받는 피해 감소',pc(Math.min(0.6,pas('dmgRed')+optSum('dmgRed')))],
+      ['스킬 쿨타임 감소',pc(Math.min(0.5,pas('cdr')+optSum('cdr')))],['공격 속도','초당 '+(1/(C().aspd*(1-Math.min(0.5,pas('aspd'))))).toFixed(2)+'회'],
+      ['골드 획득',pc(goldMul())],['경험치 획득',pc(1+optSum('expPct'))],
+      ['최대 마나',kor(maxMp())],['마나 회복','초당 '+pc(MPREG*(1+pas('mpReg')))],
+      ['체력 회복','초당 '+pc(trLv('reg')*0.0002)],['마나 소모 감소',pc(Math.min(0.6,pas('mpCost')))]];
+      return R.map(([n,v])=>`<div class="row"><span class="lbl">${n}</span><span class="val">${v}</span></div>`).join('');})()}</div>`;
     {const own=S.ttl||[],sum={};own.forEach(id=>{const T=TTLM[id];if(T)sum[T.st]=(sum[T.st]||0)+T.v;});
     h+=`<div class="row"><div class="sec">칭호 <span class="lbl">${own.length} / ${TTL.length}</span></div><button class="btn" data-act="uitog" data-k="ttl">${UI.ttl?'접기 ▲':'펼치기 ▼'}</button></div>
       <div class="iopts">${Object.keys(sum).length?Object.keys(sum).map(k=>`<span>${HSTN[k]} +${sum[k]}%</span>`).join(''):'<span>아직 얻은 칭호가 없어요</span>'}</div>`;
