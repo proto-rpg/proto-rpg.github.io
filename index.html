@@ -624,12 +624,14 @@ const shopPrice=t=>Math.round(tierGold(t)*300+150);
 function shopBuy(k,t){t=+t;if(!shopTiers().includes(t)||!SLOT[k])return false;const it=shopItem(k,t),cur=S.eq[k],c=shopPrice(t);
   if(S.gold<c||S.bag.length>=BAGMAX||(cur&&iScore(it)<=iScore(cur)))return false;S.gold-=c;it.id=++S.iid;gainItem(it);return true;}
 /* 쿠폰: 코드 → 골드. rep이 있으면 여러 번 쓸 수 있다(시험용) */
-const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1}};
+const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1},SUMMER:{skin:'s1'}}; /* SUMMER: 여름 휴가 스킨 네 부위를 모두 준다 */
 /* 금액별 1회용 쿠폰 3장씩: MAN100A(100만) · MAN1000A(1,000만) · EOK1A(1억) · EOK10A(10억) · EOK100A(100억) · EOK1000A(1,000억) */
 [['MAN100',1e6],['MAN1000',1e7],['EOK1',1e8],['EOK10',1e9],['EOK100',1e10],['EOK1000',1e11]].forEach(([n,g])=>['A','B','C'].forEach(x=>COUPON[n+x]={g}));
 function cpUse(v){const code=String(v||'').trim().toUpperCase(),c=COUPON[code];if(!S.cpn)S.cpn=[];
   if(!code)return [0,'쿠폰 코드를 입력해 주세요.'];if(!c)return [0,'없는 쿠폰 코드예요. 철자를 확인해 주세요.'];
   if(!c.rep&&S.cpn.includes(code))return [0,'이미 사용한 쿠폰이에요.'];
+  if(c.skin){const K=SKINS.find(x=>x.id===c.skin);if(!K)return [0,'없는 쿠폰 코드예요. 철자를 확인해 주세요.'];if(skFull(K.id))return [0,'이미 이 스킨의 모든 부위를 갖고 있어요.'];
+    S.cpn.push(code);skFix().own[K.id]=K.parts.map(()=>1);S.skin.on=K.id;save();return [1,`스킨 '${K.n}' 네 부위를 모두 받았어요. 바로 입혀 드렸어요.`];}
   if(!c.rep)S.cpn.push(code);S.gold+=c.g;save();return [1,`${kor(c.g)} G를 받았어요.`];}
 function gainItem(it){
   if(it.k==='wpn'&&!(S.dex[it.t]>=it.g))S.dex[it.t]=it.g;
