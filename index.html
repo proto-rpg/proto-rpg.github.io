@@ -1326,11 +1326,16 @@ function drawPlayer(){
   const walking=P.moving&&P.gr&&!(P.anim>0)&&!casting,step=time*12,bob=walking?Math.abs(Math.sin(step))*4:0;
   if(P.gr&&!(P.dead>0)){cx.save();cx.fillStyle='rgba(0,0,0,.26)';cx.beginPath();cx.ellipse(P.x,P.y-1,16-bob*1.2,4.2-bob*0.4,0,0,7);cx.fill();cx.restore();}
   if(walking&&Math.sin(step)*Math.sin(step-0.35)<0&&fx.length<80)fx.push({dust:1,x:P.x-face*9,y:P.y-2,d:-face,t:0.38,m:0.38});
+  /* 여름 스킨 소품: 허리에 낀 튜브 (뒤쪽 반은 캐릭터 뒤에, 앞쪽 반은 캐릭터 앞에 그린다) */
+  const tube=S.ch==='yuna'&&skOn()==='s1'&&!(P.dead>0)?getImg('sk_tube'):null,tbW=44,tbH=tube&&ok(tube)?tbW*tube.height/tube.width:0,tbY=P.y-23-bob+Math.sin(time*3)*0.6;
+  const drawTube=half=>{if(!tbH)return;cx.save();cx.beginPath();if(half)cx.rect(P.x-tbW,tbY,tbW*2,tbH);else cx.rect(P.x-tbW,tbY-tbH,tbW*2,tbH);cx.clip();cx.drawImage(tube,P.x-tbW/2,tbY-tbH/2,tbW,tbH);cx.restore();};
+  drawTube(0);
   flashDraw(()=>{const A=getAnim(k+'_atk'),Wk=getAnim(k+'_walk');
     if(hasC&&drawAnim(k+'_cast',Math.min(Cs.n-1,cq*Cs.n),P.x,P.y,h,face))return;
     if(P.anim>0&&A&&drawAnim(k+'_atk',(1-P.anim/P.animD)*A.n,P.x,P.y,h,face))return;
     if(walking&&Wk){cx.save();cx.translate(P.x,P.y-bob);cx.rotate(face*0.07);const okw=drawAnim(k+'_walk',(time*17)%Wk.n,0,0,h,face);cx.restore();if(okw)return;}
     drawImg(k,P.x,P.y,h*(1+Math.sin(time*3)*0.012),face);},hurt);
+  drawTube(1);
   if(!c.shot&&P.anim>0&&!(P.cast>0)){const q=1-P.anim/P.animD;if(q>0.2&&q<0.8)fxI(S.ch==='kai'?'k_slash':'v_slash',P.x+P.face*30,P.y-32,S.ch==='kai'?74:92,{fx:P.face,a:(0.8-q)*2.4,r:P.face*(-0.6+q*1.6)});}
   {const w=S.eq&&S.eq.wpn;if(w&&w.g>0&&!(P.dead>0)&&S.opt.aura!==false){const col=GRADE[w.g].c,wx=P.x+face*17,wy=P.y-34,pw=0.35+w.g*0.13+Math.sin(time*4)*0.08;cx.save();cx.globalCompositeOperation='lighter';
     const g=cx.createRadialGradient(wx,wy,1,wx,wy,13+w.g*2.5);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');cx.globalAlpha=Math.min(0.8,pw);cx.fillStyle=g;cx.beginPath();cx.arc(wx,wy,13+w.g*2.5,0,7);cx.fill();
