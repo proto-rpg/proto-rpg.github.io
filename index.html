@@ -1565,7 +1565,7 @@ function renderPanel(){
     <div class="setrow"><span>저장 코드 불러오기</span><button class="btn" data-act="svIn">${UI.svIn?'닫기':'붙여 넣기'}</button></div>
     ${UI.svIn?`<textarea id="svPaste" class="svbox" placeholder="다른 기기에서 복사한 저장 코드를 여기에 붙여 넣으세요">${UI.svArm?UI.svHold||'':''}</textarea><button class="btn gold" data-act="svLoad">${UI.svArm?'한 번 더 누르면 지금 기기의 진행을 덮어써요':'이 코드로 불러오기'}</button>${UI.svErr?`<p class="note" style="color:#ff9a9a">${UI.svErr}</p>`:''}`:''}
     <div class="setrow"><span>쿠폰</span><button class="btn" data-act="cpIn">${UI.cpIn?'닫기':'쿠폰 입력'}</button></div>
-    ${UI.cpIn?`<input id="cpCode" class="svbox" style="height:auto;min-height:0;padding:1.6cqh 2cqh;text-transform:uppercase" maxlength="20" autocomplete="off" autocapitalize="characters" placeholder="쿠폰 코드를 입력하세요" value="${UI.cpHold||''}"><button class="btn gold" data-act="cpUse">쿠폰 사용</button>${UI.cpMsg?`<p class="note" style="color:${UI.cpOk?'#ffe08a':'#ff9a9a'}">${UI.cpMsg}</p>`:''}`:''}
+    ${UI.cpIn?`<input id="cpCode" class="svbox" style="height:10cqh;min-height:0;padding:0 2.4cqh;font-size:3.6cqh;text-transform:uppercase" maxlength="20" autocomplete="off" autocapitalize="characters" placeholder="쿠폰 코드를 입력하세요" value="${UI.cpHold||''}"><button class="btn gold" data-act="cpUse">쿠폰 사용</button>${UI.cpMsg?`<p class="note" style="color:${UI.cpOk?'#ffe08a':'#ff9a9a'}">${UI.cpMsg}</p>`:''}`:''}
     <button class="btn danger" data-act="reset">${resetArm?`한 번 더 누르면 ${C().name}의 진행이 지워져요`:`${C().name} 처음부터 다시`}</button>
     <p class="note">프로토타입 · 던전 10개 · 1~200레벨 · 4차 전직(각성)까지</p>`;
   }else if(tab==='equip'){
