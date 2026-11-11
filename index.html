@@ -309,8 +309,8 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 #potB small{color:#b9f5c4;font-family:var(--f-display)}
 .ks.nomp{filter:grayscale(.8) brightness(.7)}
 .skbox{display:grid;grid-template-columns:26cqh 1fr;gap:2cqh;align-items:center}.skbox>img{max-height:30cqh;max-width:100%;justify-self:center;filter:drop-shadow(0 .6cqh .8cqh rgba(0,0,0,.5))}.skparts{display:grid;grid-template-columns:1fr 1fr;gap:1.2cqh}
-.setgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:1.6cqh}
-.settile{aspect-ratio:1/0.52;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;padding:.8cqh;border-radius:1.8cqh;border:.3cqh solid #8f84e6;border-bottom:.6cqh solid #1a1640;background:linear-gradient(#4a3f9c,#2a2466);color:#fff;text-align:center;box-shadow:inset 0 .3cqh 0 rgba(255,255,255,.18)}
+.setgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6cqh}
+.settile{height:13.5cqh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.6cqh;padding:.8cqh;border-radius:1.8cqh;border:.3cqh solid #8f84e6;border-bottom:.6cqh solid #1a1640;background:linear-gradient(#4a3f9c,#2a2466);color:#fff;text-align:center;box-shadow:inset 0 .3cqh 0 rgba(255,255,255,.18)}
 .settile b{font:400 3.4cqh/1.1 var(--f-display);color:#ffe9a8}.settile span{font-size:2cqh;line-height:1.25;color:#cfcdf0}
 .settile:active{filter:brightness(1.25);transform:translateY(.3cqh)}
 .svbox{width:100%;height:14cqh;box-sizing:border-box;background:rgba(0,0,0,.35);color:#e9e6ff;border:1px solid #6a62ad;border-radius:1.4cqh;padding:1.2cqh;font:2.2cqh/1.4 ui-monospace,monospace;resize:none;word-break:break-all;user-select:text;-webkit-user-select:text}
@@ -991,7 +991,7 @@ function hit(t,r,col){
     if(P.dead<=0)P.hp=Math.min(maxHp(),P.hp+maxHp()*KHEAL*clamp(3.2-gs()/18,1,3));
     if(Math.random()<POTDROP){if(Math.random()<0.4)S.mpS=(S.mpS||0)+1;else S.potions++;fx.push({loot:1,k:'gear5',c:'#ff8a8a',x:t.x,y:F[t.f].y-24,t:0.9,m:0.9});}
     fx.push({ring:1,x:t.x,y:F[t.f].y-16,t:0.3,m:0.3,c:'255,255,255'});
-    addText(`+${kor(g)}`,t.x,F[t.f].y-20,'#fff1c4',0,1);dirty=true;
+    if(S.opt.gtxt!==false)addText(`+${kor(g)}`,t.x,F[t.f].y-20,'#fff1c4',0,1);dirty=true;
   }
 }
 function hurtPlayer(a,pf){
@@ -1163,7 +1163,7 @@ function tryCast(n,force){
   const s=skillOf(n);if(!s||S.job<s.job||!(S.sk[s.id]>0)||P.dead>0)return;
   const key=SKK[n];if(P[key]>0)return;
   const t=skillTargets(s);if(!t.length&&!force)return;
-  {const mc=mpCost(n);if((P.mp||0)<mc){useMana();if((P.mp||0)<mc){if(force)addText('마나 부족',P.x,P.y-86,'#7ecbff');return;}}P.mp-=mc;}
+  {const mc=mpCost(n);if((P.mp||0)<mc){if(S.autoPot!==false||force)useMana();if((P.mp||0)<mc){if(force)addText('마나 부족',P.x,P.y-86,'#7ecbff');return;}}P.mp-=mc;}
   P[key]=s.cd*(1-Math.min(0.5,pas('cdr')+optSum('cdr')));
   const fire=()=>{P.anim=P.animD=0.6;P.cast=P.castM=0.6;P.castC=s.col;sfx('strike');shake=0.22;slow=Math.max(slow,0.07);doSkill(s,skillTargets(s),s.mult(S.sk[s.id]));};
   if(s.kind==='awk'&&S.opt.cutin!==false){cutin={t:1.3,m:1.3,s,fn:fire};$('#stage').classList.add('cut');sfx('win');return;}
@@ -1241,7 +1241,7 @@ function update(dt){
   if(atkHold)P.manual=Math.max(P.manual,0.6);
   if(wantStrike)want[1]=1;if(wantWhirl)want[2]=1;wantStrike=false;wantWhirl=false;
   for(let n=1;n<5;n++){if(S.autoSkill||want[n])tryCast(n,!!want[n]);want[n]=0;}
-  if(P.hp<maxHp()*0.35)usePotion();
+  if(P.hp<maxHp()*0.35&&S.autoPot!==false)usePotion();
   P.mpT=Math.max(0,(P.mpT||0)-dt);if(P.mp===undefined)P.mp=maxMp();P.mp=Math.min(maxMp(),P.mp+maxMp()*MPREG*(1+pas('mpReg'))*dt);
   if(trLv('reg')&&P.hp<maxHp()&&P.hp>0)P.hp=Math.min(maxHp(),P.hp+maxHp()*trLv('reg')*0.0002*dt);
   P.safe=(P.safe||0)+dt;if(P.safe>4&&P.hp<maxHp()){P.hp=Math.min(maxHp(),P.hp+maxHp()*0.03*dt);}
@@ -1329,7 +1329,7 @@ function drawPlayer(){
     if(walking&&Wk){cx.save();cx.translate(P.x,P.y-bob);cx.rotate(face*0.07);const okw=drawAnim(k+'_walk',(time*17)%Wk.n,0,0,h,face);cx.restore();if(okw)return;}
     drawImg(k,P.x,P.y,h*(1+Math.sin(time*3)*0.012),face);},hurt);
   if(!c.shot&&P.anim>0&&!(P.cast>0)){const q=1-P.anim/P.animD;if(q>0.2&&q<0.8)fxI(S.ch==='kai'?'k_slash':'v_slash',P.x+P.face*30,P.y-32,S.ch==='kai'?74:92,{fx:P.face,a:(0.8-q)*2.4,r:P.face*(-0.6+q*1.6)});}
-  {const w=S.eq&&S.eq.wpn;if(w&&w.g>0&&!(P.dead>0)){const col=GRADE[w.g].c,wx=P.x+face*17,wy=P.y-34,pw=0.35+w.g*0.13+Math.sin(time*4)*0.08;cx.save();cx.globalCompositeOperation='lighter';
+  {const w=S.eq&&S.eq.wpn;if(w&&w.g>0&&!(P.dead>0)&&S.opt.aura!==false){const col=GRADE[w.g].c,wx=P.x+face*17,wy=P.y-34,pw=0.35+w.g*0.13+Math.sin(time*4)*0.08;cx.save();cx.globalCompositeOperation='lighter';
     const g=cx.createRadialGradient(wx,wy,1,wx,wy,13+w.g*2.5);g.addColorStop(0,col);g.addColorStop(1,'rgba(0,0,0,0)');cx.globalAlpha=Math.min(0.8,pw);cx.fillStyle=g;cx.beginPath();cx.arc(wx,wy,13+w.g*2.5,0,7);cx.fill();
     cx.fillStyle=col;for(let i=0;i<1+w.g;i++){const ph=(time*0.9+i*0.37)%1,sx=wx+Math.sin(i*2.4+time*1.3)*(8+i*2),sy=wy+10-ph*30,sz=(1-ph)*2.4;cx.globalAlpha=(1-ph)*0.9;cx.fillRect(sx-sz/2,sy-sz*1.6,sz,sz*3.2);cx.fillRect(sx-sz*1.6,sy-sz/2,sz*3.2,sz);}
     cx.restore();}}
@@ -1454,7 +1454,7 @@ function drawHud(){
     panel(cxm-34,45,68,17,8);cx.fillStyle='#ffe9a8';cx.font='11px "Black Han Sans", sans-serif';cx.fillText(`⏱ ${bossTime.toFixed(1)}초`,cxm,57);}
   else{bar(cxm-96,11,192,18,S.kills/10,S.kills>=10?'rgba(255,96,96,.9)':'rgba(255,190,60,.8)','rgba(0,0,0,.4)');
     cx.fillStyle='#fff';cx.font='12px "Black Han Sans", sans-serif';cx.lineWidth=3;cx.strokeStyle='rgba(0,0,0,.6)';const st=`${DG().name} ${S.dg+1}-${S.stage}   ${S.kills>=10?'보스 등장!':S.kills+'/10'}`;cx.strokeText(st,cxm,25);cx.fillText(st,cxm,25);}}
-  if(combo>=5&&mode==='hunt'){const z=1+comboP*1.6;cx.save();cx.translate(730,128);cx.scale(z,z);cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='rgba(40,20,70,.9)';
+  if(combo>=5&&mode==='hunt'&&S.opt.combo!==false){const z=1+comboP*1.6;cx.save();cx.translate(730,128);cx.scale(z,z);cx.textAlign='center';cx.lineWidth=4;cx.strokeStyle='rgba(40,20,70,.9)';
     cx.font='26px "Black Han Sans", sans-serif';const cg=cx.createLinearGradient(0,-22,0,0);cg.addColorStop(0,'#fff3a0');cg.addColorStop(1,'#ff9a2a');cx.strokeText(combo,0,0);cx.fillStyle=cg;cx.fillText(combo,0,0);
     cx.font='11px "Black Han Sans", sans-serif';cx.strokeText('COMBO',0,14);cx.fillStyle='#ffe08a';cx.fillText('COMBO',0,14);cx.restore();}
   if(mode==='boss'&&S.bf&&S.bf.g===gs()){cx.textAlign='center';panel(354,66,92,16,8);cx.fillStyle='#ffb057';cx.font='10px "Black Han Sans", sans-serif';cx.fillText(`투지 · 공격력 +${Math.min(50,S.bf.n*5)}%`,400,77.5);}
@@ -1512,7 +1512,7 @@ function applyPos(){MOV.forEach(sel=>{const el=$(sel),p=S.opt.pos[sel];
   if(p){el.style.left=p.x+'%';el.style.top=p.y+'%';el.style.right='auto';el.style.bottom='auto';}else{el.style.left=el.style.top=el.style.right=el.style.bottom='';}});}
 const UI={sel:0,enh:false,dex:false,hsel:0,pull:null};
 const TITLES={char:'캐릭터',grow:'성장',equip:'인벤토리',skill:'스킬',mate:'동료',town:'마을',set:'설정',skin:'스킨',shop:'상점'};
-function sw(k,name,sub){return `<label class="setrow"><div><div>${name}</div><div class="sub">${sub}</div></div><input class="sw" type="checkbox" id="opt-${k}" data-act="opt" data-k="${k}" ${k==='autoSkill'?(S.autoSkill?'checked':''):k==='autoPot'?(S.autoPot?'checked':''):(S.opt[k]?'checked':'')}></label>`;}
+function sw(k,name,sub){return `<label class="setrow"><div><div>${name}</div><div class="sub">${sub}</div></div><input class="sw" type="checkbox" id="opt-${k}" data-act="opt" data-k="${k}" ${k==='autoSkill'?(S.autoSkill?'checked':''):k==='autoPot'?(S.autoPot?'checked':''):((['gtxt','combo','aura'].includes(k)?S.opt[k]!==false:S.opt[k])?'checked':'')}></label>`;}
 let tab=null,resetArm=false;
 function statRow(k,name,eff){return `<div class="row"><div><div class="lbl">${name}</div><div class="val">${S.st[k]} <span class="lbl">${eff}</span></div></div>
   <button class="btn plus" data-act="stat" data-k="${k}" ${S.sp?'':'disabled'} aria-label="${name} 올리기">+</button></div>`;}
@@ -1560,14 +1560,18 @@ function renderPanel(){
       <div style="display:flex;gap:1cqh"><button class="btn gold" data-act="train" data-k="${T.k}" data-n="1" ${mx||S.gold<c1?'disabled':''}>${mx?'최대':kor(c1)+'G 훈련'}</button><button class="btn" data-act="train" data-k="${T.k}" data-n="10" ${mx||S.gold<c1?'disabled':''}>×10</button></div></div>`;}
     h+=`<p class="note">훈련 단계 한도는 내 레벨 × 2예요(생명력 회복은 60까지). 레벨이 오르면 한도도 늘어요. 4차 각성과 어빌리티는 스킬·장비 메뉴에서 키워요.</p>`;
   }else if(tab==='set'){
-    const SC=[['ch','캐릭터','캐릭터 변경 · 초기화'],['bt','전투','스킬 자동 사용 · 포션 안내'],['vw','화면','데미지 숫자 · 흔들림 · 컷인'],['snd','소리','효과음 · 배경음악 크기'],['btn','버튼 배치','크기 · 투명도 · 위치 옮기기'],['key','PC 키 · 조작법','키 바꾸기 · 조작 안내'],['sv','저장','코드 만들기 · 불러오기'],['cp','쿠폰','쿠폰 코드 입력']],cat=UI.setCat;
-    if(!cat)h+=`<div class="setgrid">${SC.map(([k,n,d])=>`<button class="settile" data-act="setcat" data-k="${k}"><b>${n}</b><span>${d}</span></button>`).join('')}</div>
-    <p class="note">프로토타입 · 던전 10개 · 1~200레벨 · 4차 전직(각성)까지</p>`;
+    const SC=[['ch','캐릭터','캐릭터 변경 · 초기화'],['bt','전투','스킬 자동 사용 · 포션 안내'],['vw','화면','데미지 숫자 · 흔들림 · 컷인'],['snd','소리','효과음 · 배경음악 크기'],['btn','버튼 배치','크기 · 투명도 · 위치 옮기기'],['key','PC 키 · 조작법','키 바꾸기 · 조작 안내'],['sv','저장','코드 만들기 · 불러오기'],['cp','쿠폰','쿠폰 코드 입력'],['info','게임 정보','버전 · 내 기록']],cat=UI.setCat;
+    if(!cat)h+=`<div class="setgrid">${SC.map(([k,n,d])=>`<button class="settile" data-act="setcat" data-k="${k}"><b>${n}</b><span>${d}</span></button>`).join('')}</div>`;
     else h+=`<div class="row"><button class="btn" data-act="setcat" data-k="">← 설정</button><div class="sec">${(SC.find(x=>x[0]===cat)||[])[1]||''}</div></div>`;
+    if(cat==='info')h+=`<div class="grid2"><div class="row"><span class="lbl">캐릭터</span><span class="val">${C().name} · Lv.${S.lv}</span></div><div class="row"><span class="lbl">전투력</span><span class="val">${kor(power())}</span></div>
+      <div class="row"><span class="lbl">잡은 몬스터</span><span class="val">${kor(S.tk||0)}</span></div><div class="row"><span class="lbl">보스 처치</span><span class="val">${kor(S.bw||0)}</span></div>
+      <div class="row"><span class="lbl">도달한 던전</span><span class="val">${DUNG[S.maxDg].name}</span></div><div class="row"><span class="lbl">칭호</span><span class="val">${(S.ttl||[]).length} / ${TTL.length}</span></div>
+      <div class="row"><span class="lbl">힘의 조각</span><span class="val">${shards()} / ${STORY.length}</span></div><div class="row"><span class="lbl">쓴 쿠폰</span><span class="val">${(S.cpn||[]).length}장</span></div></div>
+      <p class="note">프로토타입 · 던전 10개 · 1~200레벨 · 4차 전직(각성)까지</p>`;
     if(cat==='ch')h+=`<div class="setrow"><div><div>캐릭터 변경</div><div class="sub">지금은 ${C().name}(${C().jobs[S.job]}) · 캐릭터마다 진행이 따로 저장돼요</div></div><button class="btn gold" data-act="chsel" ${mode==='boss'?'disabled':''}>캐릭터 선택</button></div>
     <button class="btn danger" data-act="reset">${resetArm?`한 번 더 누르면 ${C().name}의 진행이 지워져요`:`${C().name} 처음부터 다시`}</button>`;
-    if(cat==='bt')h+=`${sw('autoSkill','공격 스킬 자동 사용','오른쪽 위 AUTO 버튼과 같아요')}<p class="note">포션은 가지고 있으면 자동으로 써요(체력 35% 아래, 마나가 모자랄 때). 스킬은 마나를 쓰고 마나는 천천히 차올라요. 몬스터를 잡을 때마다 체력이 조금 차고, 4초 동안 맞지 않으면 천천히 회복돼요. 보스가 바닥에 예고하는 공격은 맞으면 체력이 크게 깎이니 피하는 게 좋아요.</p>`;
-    if(cat==='vw')h+=`${sw('dmg','데미지 숫자 표시','끄면 화면이 깔끔해져요')}${sw('shake','화면 흔들림','스킬·보스 공격 때 화면이 흔들려요')}${sw('banner','알림 문구','레벨업·클리어 안내 문구')}${sw('cutin','각성 컷인 보기','4차 각성 스킬을 쓸 때 캐릭터 그림이 떠요')}${sw('pad','방향키 표시','왼쪽 아래 ▲ ◀ ▶ ▼ 버튼')}`;
+    if(cat==='bt')h+=`${sw('autoSkill','공격 스킬 자동 사용','오른쪽 위 AUTO 버튼과 같아요')}${sw('autoPot','포션 자동 사용','끄면 체력·마나 포션을 아껴요 (체력 35% 아래, 마나 부족할 때 사용)')}<p class="note">포션은 가지고 있으면 자동으로 써요(체력 35% 아래, 마나가 모자랄 때). 스킬은 마나를 쓰고 마나는 천천히 차올라요. 몬스터를 잡을 때마다 체력이 조금 차고, 4초 동안 맞지 않으면 천천히 회복돼요. 보스가 바닥에 예고하는 공격은 맞으면 체력이 크게 깎이니 피하는 게 좋아요.</p>`;
+    if(cat==='vw')h+=`${sw('dmg','데미지 숫자 표시','끄면 화면이 깔끔해져요')}${sw('gtxt','골드 획득 숫자 표시','몬스터를 잡을 때 뜨는 동전 숫자')}${sw('combo','콤보 표시','오른쪽 위 연속 처치 숫자')}${sw('aura','무기 빛 효과','등급 높은 무기에 붙는 빛')}${sw('shake','화면 흔들림','스킬·보스 공격 때 화면이 흔들려요')}${sw('banner','알림 문구','레벨업·클리어 안내 문구')}${sw('cutin','각성 컷인 보기','4차 각성 스킬을 쓸 때 캐릭터 그림이 떠요')}${sw('pad','방향키 표시','왼쪽 아래 ▲ ◀ ▶ ▼ 버튼')}`;
     if(cat==='snd')h+=`${sw('sfx','효과음','타격·레벨업·포션 소리')}
     <div class="setrow"><span>효과음 크기</span><input class="rng" type="range" min="0" max="100" id="vol-sfxV" data-act="vol" data-k="sfxV" value="${S.opt.sfxV}" aria-label="효과음 크기"></div>
     ${sw('bgm','배경음악','사냥터·보스전 음악이 따로 나와요')}
@@ -1700,6 +1704,7 @@ document.querySelectorAll('.menu button').forEach(b=>b.addEventListener('click',
 $('#popX').addEventListener('click',closePop);
 $('#panel').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const a=b.dataset.act,k=b.dataset.k;
+  if(a==='opt'||a==='vol')return; /* 스위치·슬라이더는 change/input에서 처리 (여기서 다시 그리면 값이 되돌아간다) */
   if(a==='stat'&&S.sp>0){S.st[k]++;S.sp--;}
   else if(a==='auto'){const c=C(),pat=[c.main,c.main,c.main,'vit',c.sub];while(S.sp>0){S.st[pat[S.sp%5]]++;S.sp--;}}
   else if(a==='chsel'){showSelect();return;}
