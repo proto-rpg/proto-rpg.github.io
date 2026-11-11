@@ -686,21 +686,22 @@ const optSum=key=>{let a=skSum(key);for(const id of S.ttl||[]){const T=TTLM[id];
 const HEROES=[{k:'h_knight',n:'방패 기사 로한',st:'dmgRed',b:1.5,fx:'v_slash'},{k:'h_cleric',n:'사제 세라',st:'hpPct',b:4,fx:'e_awk'},{k:'h_gunner',n:'총잡이 진',st:'atkPct',b:3,fx:'e_arrow'},{k:'h_ninja',n:'닌자 하루',st:'crit',b:1.5,fx:'k_star'},
  {k:'h_spirit',n:'정령사 리나',st:'expPct',b:3,fx:'y_spark'},{k:'h_merchant',n:'상인 금동',st:'goldPct',b:5,fx:'b_orb'},{k:'h_berserk',n:'광전사 바론',st:'critDmg',b:5,fx:'v_slam'},{k:'h_ice',n:'얼음 마녀 아이린',st:'cdr',b:2,fx:'v_cyclone'}];
 const HSTN={atkPct:'공격력',hpPct:'최대 체력',crit:'치명타 확률',critDmg:'치명타 피해',goldPct:'골드 획득',expPct:'경험치 획득',dmgRed:'받는 피해 감소',cdr:'스킬 쿨타임 감소'};
-const HGRADE=[...GRADE,{n:'신화',c:'#ff5d8f'}],HGM=[1,1.6,2.4,3.6,5.4],HCAP=[5,7,9,12,15],HSLOT=[10,40,80],HMAX=30;
+const HGRADE=[...GRADE,{n:'신화',c:'#ff5d8f'}],HGM=[1,1.8,3.2,5.6,10],HCAP=[5,7,9,12,15],HSLOT=[10,40,80],HMAX=30;
 const hBonus=h=>r1(HEROES[h.h].b*HGM[h.g]*(1+0.12*(h.lv-1)));
-const hPow=h=>(0.2+h.g*0.1)*(1+0.05*(h.lv-1));
+const HPW=[0.15,0.22,0.35,0.55,0.9];
+const hPow=h=>HPW[h.g]*(1+0.05*(h.lv-1));
 const hSlots=()=>HSLOT.filter(l=>S.lv>=l).length;
 const pullCost=()=>Math.max(300,Math.round(mobStat(gs()).gold*600));
 const team=()=>S.team.map(id=>S.heroes.find(h=>h.id===id)).filter(Boolean);
 function newHero(g){const h={id:++S.iid,h:Math.floor(Math.random()*HEROES.length),g:g===undefined?rollGrade(1):g,lv:1};S.heroes.push(h);return h;}
 function pull(n){const c=pullCost()*(n===10?9:1);if(S.gold<c||S.heroes.length+n>HMAX)return null;S.gold-=c;const out=[];for(let i=0;i<n;i++)out.push(newHero());return out;}
-const hMat=(h,capOnly)=>S.heroes.filter(x=>x!==h&&x.g===h.g&&!S.team.includes(x.id)&&(capOnly?x.lv>=HCAP[x.g]:true)).sort((a,b)=>a.lv-b.lv)[0];
+const hMat=(h,capOnly)=>S.heroes.filter(x=>x!==h&&x.g===h.g&&!S.team.includes(x.id)&&!x.lock&&(capOnly?x.lv>=HCAP[x.g]:true)).sort((a,b)=>a.lv-b.lv)[0];
 function hMerge(h){if(h.lv>=HCAP[h.g])return false;const m=hMat(h);if(!m)return false;S.heroes.splice(S.heroes.indexOf(m),1);h.lv++;return true;}
 function hPromote(h){if(h.g>=4||h.lv<HCAP[h.g])return false;const m=hMat(h,true);if(!m)return false;S.heroes.splice(S.heroes.indexOf(m),1);h.g++;h.lv=1;return true;}
 function hDeploy(h){const i=S.team.indexOf(h.id);if(i>=0){S.team.splice(i,1);return true;}if(S.team.length<hSlots()){S.team.push(h.id);return true;}return false;}
 function hAuto(){let n=0,go=true;while(go){go=false;for(let g=0;g<5;g++){
-    const tg=S.heroes.filter(h=>h.g===g&&h.lv<HCAP[g]).sort((a,b)=>(S.team.includes(b.id)-S.team.includes(a.id))||b.lv-a.lv)[0];if(tg&&hMerge(tg)){n++;go=true;break;}
-    const cp=S.heroes.filter(h=>h.g===g&&h.lv>=HCAP[g]).sort((a,b)=>S.team.includes(b.id)-S.team.includes(a.id))[0];if(cp&&hPromote(cp)){n++;go=true;break;}}}
+    const tg=S.heroes.filter(h=>h.g===g&&h.lv<HCAP[g]).sort((a,b)=>(S.team.includes(b.id)-S.team.includes(a.id))||(!!b.lock-!!a.lock)||b.lv-a.lv)[0];if(tg&&hMerge(tg)){n++;go=true;break;}
+    const cp=S.heroes.filter(h=>h.g===g&&h.lv>=HCAP[g]).sort((a,b)=>(S.team.includes(b.id)-S.team.includes(a.id))||(!!b.lock-!!a.lock))[0];if(cp&&hPromote(cp)){n++;go=true;break;}}}
   S.team=S.team.filter(id=>S.heroes.some(h=>h.id===id));return n;}
 function starterHero(){if(S.gotHero||S.lv<10)return;S.gotHero=1;if(!S.heroes.length){const h=newHero(0);S.team=[h.id];flash(`첫 동료 ${HEROES[h.h].n} 합류! 동료 메뉴에서 확인하세요`,'#9fe7ff');}}
 /* 성장(훈련): 골드로 기본 능력치를 단계별로 올린다. 단계 한도는 레벨 × 2 */
@@ -1652,11 +1653,11 @@ function renderPanel(){
       h+=`<div class="idet" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center">${HIMG(sel,'12cqh')}<div><div class="name" style="color:${G.c}">${G.n} · ${HEROES[sel.h].n}</div>
         <div class="sub">Lv.${sel.lv} / ${cap}${on?' · 배치 중':''} · 보스전 공격력 내 공격력의 ${Math.round(hPow(sel)*100)}%</div></div></div><button class="btn" data-act="hsel" data-k="0">닫기</button></div>
         <div class="istat"><b>배치 효과: ${HSTN[HEROES[sel.h].st]} +${hBonus(sel)}%</b></div>
-        <div class="ibtns"><button class="btn gold" data-act="hdep" ${!on&&S.team.length>=ns?'disabled':''}>${on?'배치 해제':ns?(S.team.length>=ns?'슬롯이 가득 찼어요':'배치'):'10레벨에 슬롯이 열려요'}</button>
+        <div class="ibtns"><button class="btn gold" data-act="hdep" ${!on&&S.team.length>=ns?'disabled':''}>${on?'배치 해제':ns?(S.team.length>=ns?'슬롯이 가득 찼어요':'배치'):'10레벨에 슬롯이 열려요'}</button><button class="btn" data-act="hlock" aria-pressed="${!!sel.lock}">${sel.lock?'잠금 해제':'잠금'}</button>
           ${full?(sel.g<4?`<button class="btn" data-act="hprom" ${pm?'':'disabled'}>${HGRADE[sel.g+1].n}(으)로 승급${pm?` · 재료: ${HEROES[pm.h].n}`:' · 같은 등급 최대 레벨 동료가 필요해요'}</button>`:'<button class="btn" disabled>최고 등급 · 최대 레벨</button>')
             :`<button class="btn" data-act="hmerge" ${mt?'':'disabled'}>합성 Lv.${sel.lv+1}${mt?` · 재료: ${HEROES[mt.h].n} Lv.${mt.lv}`:' · 같은 등급 동료가 필요해요'}</button>`}</div>
-        <div class="sub">합성: 같은 등급 동료 1명을 재료로 써서 레벨 +1. 승급: 최대 레벨이 되면, 같은 등급의 최대 레벨 동료 1명을 재료로 써서 다음 등급 Lv.1이 돼요. 신화는 뽑기로 나오지 않고 전설 Lv.12 둘을 승급해야만 얻어요. 배치 중인 동료는 재료로 쓰이지 않아요.</div></div>`;}
-    h+=`<div class="bag">${S.heroes.slice().sort((a,b)=>b.g-a.g||b.lv-a.lv).map(x=>`<button class="cell${UI.hsel===x.id?' on':''}" data-act="hsel" data-k="${x.id}" style="--g:${HGRADE[x.g].c}" aria-label="${HGRADE[x.g].n} ${HEROES[x.h].n}">${HIMG(x,'74%')}<span class="cl" style="color:${HGRADE[x.g].c}">Lv${x.lv}</span>${S.team.includes(x.id)?'<span class="cn">배치</span>':''}</button>`).join('')}
+        <div class="sub">합성: 같은 등급 동료 1명을 재료로 써서 레벨 +1. 승급: 최대 레벨이 되면, 같은 등급의 최대 레벨 동료 1명을 재료로 써서 다음 등급 Lv.1이 돼요. 신화는 뽑기로 나오지 않고 전설 Lv.12 둘을 승급해야만 얻어요. 배치 중이거나 잠근 동료는 합성·자동 합성의 재료로 쓰이지 않아요.</div></div>`;}
+    h+=`<div class="bag">${S.heroes.slice().sort((a,b)=>b.g-a.g||b.lv-a.lv).map(x=>`<button class="cell${UI.hsel===x.id?' on':''}" data-act="hsel" data-k="${x.id}" style="--g:${HGRADE[x.g].c}" aria-label="${HGRADE[x.g].n} ${HEROES[x.h].n}">${HIMG(x,'74%')}<span class="cl" style="color:${HGRADE[x.g].c}">Lv${x.lv}</span>${S.team.includes(x.id)?'<span class="cn">배치</span>':x.lock?'<span class="cn" style="color:#9fe7ff">잠금</span>':''}</button>`).join('')}
       ${S.heroes.length?'':'<span class="sub" style="grid-column:span 6">아직 동료가 없어요. 10레벨에 첫 동료가 합류하고, 골드로 영웅을 뽑을 수 있어요.</span>'}</div>
       <p class="note">동료는 평소 사냥에는 나오지 않고 <b>보스 스테이지에서만</b> 함께 싸워요. 배치 슬롯은 ${HSLOT.join(' · ')}레벨에 하나씩 열려요. 뽑기 값은 지금 스테이지에 따라 올라요.</p>`;
   }else{
@@ -1730,6 +1731,7 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='hdep'){const x=S.heroes.find(h=>h.id===UI.hsel);if(x)hDeploy(x);}
   else if(a==='hmerge'){const x=S.heroes.find(h=>h.id===UI.hsel);if(x&&hMerge(x))sfx('click');}
   else if(a==='hprom'){const x=S.heroes.find(h=>h.id===UI.hsel);if(x&&hPromote(x)){sfx('win');flash(`${HEROES[x.h].n} ${HGRADE[x.g].n} 승급!`,HGRADE[x.g].c);}}
+  else if(a==='hlock'){const x=S.heroes.find(h=>h.id===UI.hsel);if(x){x.lock=x.lock?0:1;sfx('click');}}
   else if(a==='hauto'){const n=hAuto();if(n){sfx('lvl');flash(`자동 합성 ${n}회`,'#f2c14e');}}
   else if(a==='noop'){return;}
   else if(a==='train'){if(train(k,+b.dataset.n))sfx('click');}
