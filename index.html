@@ -642,7 +642,7 @@ function gainItem(it){
   else{S.bag.pop();bagAdd(it);if(it.g>=1){sfx('loot');flash(`${nm} 획득! 인벤토리에서 확인하세요`,c);}}
   addText(nm,P.x,P.y-90,c,it.g>=1);dirty=true;save();}
 const stLv=()=>gs()*2,needLv=()=>Math.max(1,(gs()-1)*2);
-const dropPool=()=>{const L=stLv();return WEAPONS.map((w,i)=>i).filter(i=>WEAPONS[i].lv<=L).slice(-3);};
+const dropPool=()=>{const L=stLv();return WEAPONS.map((w,i)=>i).filter(i=>WEAPONS[i].lv<=L).slice(-2);}; /* 지금 사냥터 레벨대 장비만: 최근 2단계 */
 /* 슬롯 강화: 121레벨부터, 레벨 1당 강화 한도 +1, 골드 사용. 장비를 바꿔도 슬롯에 남는다 */
 const EM={wpn:1.092,glove:1.092,hat:1.04,armor:1.03,shoe:1.03,acc:1.01},ENHN={wpn:'무기',hat:'모자',armor:'갑옷',glove:'장갑',shoe:'신발',acc:'장신구'};
 const enhCap=()=>Math.max(0,S.lv-120),enhCost=n=>Math.round(1.6e8*Math.pow(ENHR,n)),em=k=>Math.pow(EM[k],(S.enh&&S.enh[k])||0);
@@ -818,7 +818,7 @@ function rollGrade(boost){const ws=GRADE.map((g,i)=>i?g.w*boost:g.w),tot=ws.redu
 function tryDrop(kind,x,y){
   if(kind==='mob'){S.pity=(S.pity||0)+1;if(S.pity<PITY&&Math.random()>=DROP.mob)return;S.pity=0;}else if(Math.random()>=DROP[kind])return;
   const pool=dropPool();if(!pool.length)return;
-  const pick=()=>{if(kind==='fin')return pool[pool.length-1];const wt=pool.map((_,k)=>k+1),tot=wt.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let k=0;k<pool.length;k++){r-=wt[k];if(r<0)return pool[k];}return pool[0];};
+  const pick=()=>{if(kind==='fin')return pool[pool.length-1];const wt=pool.map((_,k)=>k?3:1),tot=wt.reduce((a,b)=>a+b,0);let r=Math.random()*tot;for(let k=0;k<pool.length;k++){r-=wt[k];if(r<0)return pool[k];}return pool[0];};
   const boost=kind==='mob'?1:kind==='mini'?2.2:4;
   const give=(k,dx,dl)=>{const it=rollItem(k,pick(),rollGrade(boost));fx.push({loot:1,k:iIcon(it),c:GRADE[it.g].c,x:x+dx,y,t:1.1,m:1.1});setTimeout(()=>gainItem(it),dl);};
   const rk=()=>Math.random()<0.3?'wpn':SLK[1+Math.floor(Math.random()*5)];
