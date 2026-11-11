@@ -910,7 +910,7 @@ function showEvt(k,d,w){evt={k,t:d,m:d,w};}
 let wantWhirl=false,mode='hunt',mobs=[],boss=null,mates=[],shots=[],zones=[],waves=[],texts=[],fx=[],bossTime=0,spawnT=0,time=0,shake=0,
     paused=false,dirty=true,wantStrike=false,banner=null,want=[0,0,0,0,0],atkHold=0,cutin=null;
 const SKK=['','skT','skT2','skT3','skT4'],SKKEY=['','strike','whirl','s3','s4'],SKLV=[0,10,30,70,120];
-function addText(s,x,y,c,big,coin){texts.push({s,x,y,c,t:1,big,coin});}
+function addText(s,x,y,c,big,coin,d){texts.push({s,x,y,c,t:1,big,coin,d});}
 function flash(s,c){if(S.opt.banner)banner={s,c:c||'#fff',t:1.8};}
 
 /* ---------- 소리 (녹음된 효과음·배경음악 파일 재생) ---------- */
@@ -977,7 +977,7 @@ function hit(t,r,col){
   t.hp-=r.d;t.hurt=0.12;
   const isB=t===boss,tx=isB?t.x+t.w/2:t.x,ty=isB?F[0].y-t.h-14:F[t.f].y-(t.h||30)-14;
   sfx(r.c?'crit':'hit');if(fx.length<70)fx.push({spark:1,x:tx+(Math.random()*24-12),y:ty+26+(Math.random()*16-8),r:Math.random()*6.3,big:r.c,t:0.2,m:0.2});
-  if(S.opt.dmg)addText((r.c?'★':'')+kor(r.d),tx+(Math.random()*16-8),stackY(t,ty),col||(r.c?'#ffcf4a':'#fff'),r.c);
+  if(S.opt.dmg)addText(kor(r.d),tx+(Math.random()*16-8),stackY(t,ty),'#ff9a2e',r.c,0,r.c?2:1);
   if(t.hp<=0){
     if(isB)return endBoss(true);
     t.dead=true;sfx('kill');S.tk=(S.tk||0)+1;if(S.mq&&S.mq.st===0&&S.mq.ch===S.dg)S.mq.n++;combo++;comboT=3;comboP=0.18;if(fx.length<70)fx.push({coin:1,x:t.x,y:F[t.f].y-22,t:0.55,m:0.55});
@@ -1161,7 +1161,7 @@ function tryCast(n,force){
   const t=skillTargets(s);if(!t.length&&!force)return;
   {const mc=mpCost(n);if((P.mp||0)<mc){useMana();if((P.mp||0)<mc){if(force)addText('마나 부족',P.x,P.y-86,'#7ecbff');return;}}P.mp-=mc;}
   P[key]=s.cd*(1-Math.min(0.5,pas('cdr')+optSum('cdr')));
-  const fire=()=>{P.anim=P.animD=0.6;P.cast=P.castM=0.6;P.castC=s.col;addText(s.name+'!',P.x,P.y-86,s.col,true);sfx('strike');shake=0.22;slow=Math.max(slow,0.07);doSkill(s,skillTargets(s),s.mult(S.sk[s.id]));};
+  const fire=()=>{P.anim=P.animD=0.6;P.cast=P.castM=0.6;P.castC=s.col;addText(s.name,P.x,P.y-86,s.col,true);sfx('strike');shake=0.22;slow=Math.max(slow,0.07);doSkill(s,skillTargets(s),s.mult(S.sk[s.id]));};
   if(s.kind==='awk'&&S.opt.cutin!==false){cutin={t:1.3,m:1.3,s,fn:fire};$('#stage').classList.add('cut');sfx('win');return;}
   fire();
 }
@@ -1462,9 +1462,13 @@ function drawHud(){
   bar(0,H-5,W,5,S.lv>=MAXLV?1:S.exp/expNeed(S.lv),'#c9e65a','rgba(0,0,0,.6)');
   if(banner){cx.textAlign='center';cx.globalAlpha=Math.min(1,banner.t*2);panel(250,mode==='boss'?68:40,300,26,13);
     cx.fillStyle=banner.c;cx.font='13px "Black Han Sans", sans-serif';cx.fillText(banner.s,400,mode==='boss'?86:58);cx.globalAlpha=1;}
-  for(const t of texts){cx.globalAlpha=Math.min(1,t.t*1.6);cx.textAlign='center';{const pop=1+Math.max(0,t.t-0.82)*(t.big?3.2:1.4);cx.font=Math.round((t.coin?12:t.big?21:16)*pop)+'px "Black Han Sans", sans-serif';}
+  for(const t of texts){cx.globalAlpha=Math.min(1,t.t*1.6);cx.textAlign='center';{const pop=1+Math.max(0,t.t-0.82)*(t.big?3.2:1.4);cx.font=Math.round((t.coin?12:t.d===2?24:t.big?21:16)*pop)+'px "Black Han Sans", sans-serif';}
     /* 골드 획득은 피해 숫자와 헷갈리지 않게: 작은 글씨 + 동전 그림, G 글자 없음 */
     if(t.coin){const im=getImg('ui_i0'),w=cx.measureText(t.s).width,ix=t.x-w/2-8;cx.lineWidth=3;cx.strokeStyle='rgba(60,36,6,.9)';cx.strokeText(t.s,t.x+7,t.y);cx.fillStyle=t.c;cx.fillText(t.s,t.x+7,t.y);if(ok(im))cx.drawImage(im,ix-1,t.y-12,14,14);continue;}
+    /* 피해 숫자: 치명타는 빨강→분홍 그라데이션에 흰 테두리, 일반은 주황 숫자 */
+    if(t.d===2){const fs=parseInt(cx.font),g=cx.createLinearGradient(0,t.y-fs*0.8,0,t.y);g.addColorStop(0,'#f5142a');g.addColorStop(0.6,'#ff2f5e');g.addColorStop(1,'#ff66b0');
+      cx.lineJoin='round';cx.lineWidth=7;cx.strokeStyle='rgba(120,10,40,.9)';cx.strokeText(t.s,t.x,t.y);cx.lineWidth=4.5;cx.strokeStyle='#fff';cx.strokeText(t.s,t.x,t.y);cx.fillStyle=g;cx.fillText(t.s,t.x,t.y);continue;}
+    if(t.d===1){cx.lineJoin='round';cx.lineWidth=4;cx.strokeStyle='rgba(70,26,0,.9)';cx.strokeText(t.s,t.x,t.y);cx.fillStyle='#ff9a2e';cx.fillText(t.s,t.x,t.y);continue;}
     cx.lineWidth=4;cx.strokeStyle='rgba(30,20,20,.85)';cx.strokeText(t.s,t.x,t.y);cx.fillStyle=t.c;cx.fillText(t.s,t.x,t.y);}
   cx.globalAlpha=1;
 }
