@@ -526,8 +526,8 @@ const XSK={vera:[['vx1',1,'검술 단련','basic',0.04],['vx2',2,'강철 체력'
  kai:[['kx1',1,'투척 숙련','basic',0.04],['kx2',2,'날랜 손','crit',0.01],['kx3',3,'그림자 체력','hpPct',0.02],['kx4',4,'밤의 칼날','basic',0.06]]};
 const XLB={basic:'기본 공격 피해',hpPct:'최대 체력',crit:'치명타 확률',goldPct:'골드 획득'};
 for(const k in XSK){for(const [id,job,name,eff,per] of XSK[k])CLS[k].sk.push({id,job,name,eff,per,label:XLB[eff]});
-  /* 남는 포인트를 쓸 곳: 한계 돌파 (100레벨까지, 레벨당 공격력 +0.5%) */
-  CLS[k].sk.push({id:k[0]+'lim',job:1,name:'한계 돌파',eff:'atkPct',per:0.005,label:'공격력',mx:100});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
+  /* 남는 포인트를 쓸 곳: 한계 돌파 (108레벨까지, 레벨당 공격력 +0.5%) */
+  CLS[k].sk.push({id:k[0]+'lim',job:1,name:'한계 돌파',eff:'atkPct',per:0.005,label:'공격력',mx:108});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
 /* 기본 공격: 전직할 때마다 맞는 대상 +1, 타격 횟수 +1, 한 번 공격의 총 피해 +25% */
 const basicAtk=()=>{const c=C(),J=S.job||0,H=(c.hits||1)+J;return{n:c.tg+J,H,per:(c.hits>1?0.6*c.hits:1)*(1+0.25*J)/H*(1+pas('basic'))};};
 for(const k in CLS)CLS[k].sk.filter(s=>s.kind).forEach((s,i)=>{s.ic='ic_'+k+i;});
@@ -967,10 +967,8 @@ function bgmTick(){if(!AC)return;const on=S.opt.bgm&&!document.hidden&&!selectin
 addEventListener('pointerdown',initAudio,true);addEventListener('keydown',initAudio,true);
 
 /* ---------- 성장 ---------- */
-/* 스킬 포인트: 그 레벨에서 배울 수 있는 스킬을 딱 채울 만큼만 준다(남지 않게).
-   2~10레벨 1점, 11~29레벨 2점(30레벨 3점), 31~70레벨 1점, 71~120레벨은 5레벨마다 4점, 121~200레벨은 2레벨마다 1점 → 200레벨에 전부 최대 */
-/* 2~10레벨 1점, 11~30레벨 2점(30레벨 3점), 31~70레벨 1점, 71~120레벨 2점, 121~200레벨 1점, 그리고 5레벨마다 +1점 → 200레벨에 310점 */
-const kpAt=L=>(L<=10?1:L<30?2:L===30?3:L<=70?1:L<=120?2:1)+(L%5?0:1);
+/* 스킬 포인트는 레벨마다 고르게: 2~120레벨 2점, 121~200레벨 1점 → 200레벨에 318점 (모든 스킬 최대치와 같다) */
+const kpAt=L=>L<=120?2:1;
 const kpTotal=L=>{let t=0;for(let i=2;i<=L;i++)t+=kpAt(i);return t;};
 const kpSpent=()=>{let t=0;for(const k in S.sk)t+=S.sk[k]||0;return t-(S.job===0&&S.sk.b0>0?1:0);};
 const kpFix=()=>Math.max(0,kpTotal(S.lv)-kpSpent());
