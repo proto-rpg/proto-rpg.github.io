@@ -519,6 +519,15 @@ const CLS={
    {id:'requiem',job:4,name:'섀도 레퀴엠',short:'각성',kind:'awk',hits:10,cd:30,col:'#5fe8d8',mult:l=>2.6+0.2*l,area:'[각성] 화면의 모든 적에게'},
    {id:'traceless',job:4,name:'무영',eff:'evade',per:0.015,label:'회피율'},
    {id:'killing',job:4,name:'살의',eff:'atkPct',per:0.04,label:'공격력'}]}};
+/* 전직마다 패시브 1개씩 추가 (basic = 기본 공격 피해) */
+const XSK={vera:[['vx1',1,'검술 단련','basic',0.04],['vx2',2,'강철 체력','hpPct',0.02],['vx3',3,'급소 파악','crit',0.01],['vx4',4,'검의 극의','basic',0.06]],
+ elena:[['ex1',1,'속사 훈련','basic',0.04],['ex2',2,'매의 눈','crit',0.01],['ex3',3,'사냥꾼의 직감','goldPct',0.02],['ex4',4,'별빛 화살','basic',0.06]],
+ yuna:[['yx1',1,'마력탄 숙련','basic',0.04],['yx2',2,'마나 갑옷','hpPct',0.02],['yx3',3,'원소 집중','crit',0.01],['yx4',4,'성운의 탄환','basic',0.06]],
+ kai:[['kx1',1,'투척 숙련','basic',0.04],['kx2',2,'날랜 손','crit',0.01],['kx3',3,'그림자 체력','hpPct',0.02],['kx4',4,'밤의 칼날','basic',0.06]]};
+const XLB={basic:'기본 공격 피해',hpPct:'최대 체력',crit:'치명타 확률',goldPct:'골드 획득'};
+for(const k in XSK){for(const [id,job,name,eff,per] of XSK[k])CLS[k].sk.push({id,job,name,eff,per,label:XLB[eff]});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
+/* 기본 공격: 전직할 때마다 맞는 대상 +1, 타격 횟수 +1, 한 번 공격의 총 피해 +25% */
+const basicAtk=()=>{const c=C(),J=S.job||0,H=(c.hits||1)+J;return{n:c.tg+J,H,per:(c.hits>1?0.6*c.hits:1)*(1+0.25*J)/H*(1+pas('basic'))};};
 for(const k in CLS)CLS[k].sk.filter(s=>s.kind).forEach((s,i)=>{s.ic='ic_'+k+i;});
 for(const k in CLS)CLS[k].sk.forEach(s=>{s.type=s.kind?'공격':'패시브';s.max=s.kind&&s.job?20:10;
   s.desc=s.kind?(l=>`${s.area} ${Math.round(s.mult(Math.max(1,l))*100)}% × ${s.hits}타${s.multi?` (최대 ${s.multi}마리)`:''} · 쿨타임 ${s.cd}초`)
@@ -954,7 +963,7 @@ addEventListener('pointerdown',initAudio,true);addEventListener('keydown',initAu
 /* ---------- 성장 ---------- */
 /* 스킬 포인트: 그 레벨에서 배울 수 있는 스킬을 딱 채울 만큼만 준다(남지 않게).
    2~10레벨 1점, 11~29레벨 2점(30레벨 3점), 31~70레벨 1점, 71~120레벨은 5레벨마다 4점, 121~200레벨은 2레벨마다 1점 → 200레벨에 전부 최대 */
-const kpAt=L=>L<=10?1:L<30?2:L===30?3:L<=70?1:L<=120?(L%5?1:0):(L%2?0:1);
+const kpAt=L=>(L<=10?1:L<30?2:L===30?3:L<=70?1:L<=120?(L%5?1:0):(L%2?0:1))+(L%5?0:1); /* 5레벨마다 +1점 (추가 패시브 몫) */
 const kpTotal=L=>{let t=0;for(let i=2;i<=L;i++)t+=kpAt(i);return t;};
 const kpSpent=()=>{let t=0;for(const k in S.sk)t+=S.sk[k]||0;return t-(S.job===0&&S.sk.b0>0?1:0);};
 const kpFix=()=>Math.max(0,kpTotal(S.lv)-kpSpent());
@@ -1238,16 +1247,20 @@ function update(dt){
 
   const c=C();P.atkT-=dt;
   if(P.atkT<=0){
+    const BA=basicAtk(),gap=Math.min(110,c.aspd*800/BA.H);
     const far=c.rng>100,bd=boss?Math.max(boss.x-P.x,P.x-boss.x-boss.w,0):0;
     /* 원거리(궁수·마법사)는 다른 층에 있어도 사거리 안이면 맞힌다 */
     const t=mode==='boss'?(boss&&P.gr&&(P.f===0||far)&&bd<c.rng?[boss]:[])
-      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&(m.f===P.f||(far&&Math.abs(F[m.f].y-P.y)<=160))&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,c.tg);
+      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&(m.f===P.f||(far&&Math.abs(F[m.f].y-P.y)<=160))&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,BA.n);
     if(t.length){P.atkT=c.aspd*(1-Math.min(0.5,pas('aspd')));P.anim=P.animD=c.ad;
       const t0=t[0];P.face=Math.sign(tgtX(t0)-P.x)||P.face;
-      if(c.shot){fx.push({proj:1,k:c.shot,x0:P.x+P.face*14,y0:P.y-34,x1:tgtX(t0),y1:tgtY(t0),t:0.14,m:0.14,c:c.col});
-        setTimeout(()=>{if(!alive(t0))return;hit(t0,rollDmg(1));
-          if(c.splash&&!t0.w)mobs.forEach(m=>{if(m!==t0&&alive(m)&&m.f===t0.f&&Math.abs(m.x-t0.x)<c.splash)hit(m,rollDmg(0.6));});},140);}
-      else for(let k=0;k<(c.hits||1);k++)setTimeout(()=>t.forEach(m=>{if(alive(m))hit(m,rollDmg(c.hits>1?0.6:1));}),k*120);}
+      const px=P.x,py=P.y,fc=P.face;
+      for(let k=0;k<BA.H;k++){const go=()=>t.forEach((m,n)=>{if(!alive(m))return;
+          if(c.shot){fx.push({proj:1,k:c.shot,x0:px+fc*14,y0:py-34,x1:tgtX(m),y1:tgtY(m),t:0.14,m:0.14,c:c.col});
+            setTimeout(()=>{if(!alive(m))return;hit(m,rollDmg(BA.per));
+              if(c.splash&&!m.w&&n===0)mobs.forEach(o=>{if(o!==m&&!t.includes(o)&&alive(o)&&o.f===m.f&&Math.abs(o.x-m.x)<c.splash)hit(o,rollDmg(BA.per*0.6));});},140);}
+          else hit(m,rollDmg(BA.per));});
+        if(k)setTimeout(go,k*gap);else go();}}
     else if(atkHold){P.atkT=c.aspd*(1-Math.min(0.5,pas('aspd')));P.anim=P.animD=c.ad;sfx('hit');
       if(c.shot){const x1=clamp(P.x+P.face*c.rng*0.8,10,W-10);fx.push({proj:1,k:c.shot,x0:P.x+P.face*14,y0:P.y-34,x1,y1:P.y-34,t:0.14,m:0.14,c:c.col});}}
   }
@@ -1651,6 +1664,7 @@ function renderPanel(){
     {const vis=c.sk.filter(sk=>!(sk.job>Math.max(1,S.job)||(sk.job===0&&S.job>0))),act=vis.filter(k=>k.kind),pasv=vis.filter(k=>!k.kind);
     h+=`<div class="skrow">${act.map(sk=>{const l=S.sk[sk.id]||0,can=S.job>=sk.job&&S.kp&&l<sk.max;return `<div class="skc"><img src="assets/${sk.ic}.webp" alt=""${l?'':' style="filter:grayscale(1) brightness(.55)"'}><div class="name">${sk.name}</div><span class="lbl">Lv.${l} / ${sk.max}</span><div class="sub">${sk.desc(l||1)}</div>
       <button class="btn ${can?'gold':''}" data-act="skill" data-k="${sk.id}" ${can?'':'disabled'}>${l>=sk.max?'최대':S.job<sk.job?'전직 필요':'레벨 올리기'}</button></div>`;}).join('')}</div>`;
+    {const B=basicAtk();h+=`<p class="note">기본 공격: 한 번에 최대 <b>${B.n}마리</b> · <b>${B.H}타</b> · 타당 공격력의 ${Math.round(B.per*100)}% (전직할 때마다 대상 +1 · 타격 +1회 · 총 피해 +25%)</p>`;}
     if(pasv.length)h+=`<div class="sec">패시브</div><div class="grid2">${pasv.map(sk=>{const l=S.sk[sk.id]||0;return `<div class="item"><div style="min-width:0"><div class="name">${sk.name} <span class="lbl">Lv.${l}/${sk.max}</span></div><div class="sub">${sk.desc(l||1)}</div></div><button class="btn plus" data-act="skill" data-k="${sk.id}" ${S.job>=sk.job&&S.kp&&l<sk.max?'':'disabled'} aria-label="${sk.name} 올리기">+</button></div>`;}).join('')}</div>`;
     if(S.job===1)h+=`<p class="note">30레벨 2차 전직(${c.jobs[2]})에서 ${c.sk.filter(x=>x.job===2).map(x=>x.name).join(' · ')} 스킬이 열려요.</p>`;}
     if(S.job>=2&&S.job<4){const n=S.job+1;h+=`<p class="note">${n===3?70:120}레벨 ${n}차 전직(${c.jobs[n]})에서 ${c.sk.filter(x=>x.job===n).map(x=>x.name).join(' · ')} 스킬이 열려요.</p>`;}
@@ -1862,13 +1876,13 @@ $('#mcard').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   if(b.dataset.act==='job3'||b.dataset.act==='job4'){S.job=b.dataset.act==='job3'?3:4;flash(`${C().jobs[S.job]} 전직 완료! ${skillOf(S.job).name}을(를) 배워 보세요`,skillOf(S.job).col);if(S.job===3&&S.lv>=120)mq.push(job4Modal);save();nextModal();if($('#modal').hidden)openPop('skill');return;}
   if(b.dataset.act==='godg'){nextModal();goDungeon(S.maxDg);return;}
   nextModal();});
-function jobModal(){const c=C(),s=c.sk.find(x=>x.job===1&&x.kind);return `<h2>1차 전직</h2><p>10레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[1])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 3개가 열려요.</p><button data-act="job">${ro(c.jobs[1])} 전직하기</button>`;}
+function jobModal(){const c=C(),s=c.sk.find(x=>x.job===1&&x.kind);return `<h2>1차 전직</h2><p>10레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[1])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 4개가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).</p><button data-act="job">${ro(c.jobs[1])} 전직하기</button>`;}
 function jobNModal(n){const c=C(),s=skillOf(n),ps=c.sk.filter(x=>x.job===n&&!x.kind).map(x=>x.name).join(' · ');
-  return `<h2>${n}차 전직${n===4?' · 각성':''}</h2><p>${n===3?70:120}레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[n])}</b> 전직하면 ${n===4?'각성 스킬':'공격 스킬'} <b>${gwa(s.name)}</b> 패시브 2개(${ps})가 열려요.${n===4?' 각성 스킬을 쓰면 캐릭터 컷인이 떠요.':''}</p><button data-act="job${n}">${ro(c.jobs[n])} 전직하기</button>`;}
+  return `<h2>${n}차 전직${n===4?' · 각성':''}</h2><p>${n===3?70:120}레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[n])}</b> 전직하면 ${n===4?'각성 스킬':'공격 스킬'} <b>${gwa(s.name)}</b> 패시브 3개(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).${n===4?' 각성 스킬을 쓰면 캐릭터 컷인이 떠요.':''}</p><button data-act="job${n}">${ro(c.jobs[n])} 전직하기</button>`;}
 function job3Modal(){return jobNModal(3);}
 function job4Modal(){return jobNModal(4);}
 function clearModal(){const d=DUNG[S.maxDg];return `<h2>${DUNG[S.maxDg-1].name} 클리어!</h2><p>새 던전 <b>${d.name}</b>(권장 ${d.lv}레벨)이 열렸어요. 마을 메뉴에서 언제든 오갈 수 있어요.</p><button data-act="godg">${ro(d.name)} 이동</button><button style="background:transparent;color:var(--fg);border:1px solid var(--line)">여기서 계속 사냥</button>`;}
-function job2Modal(){const c=C(),s=skillOf(2),ps=c.sk.filter(x=>x.job===2&&!x.kind).map(x=>x.name).join(' · ');return `<h2>2차 전직</h2><p>30레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[2])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 2개(${ps})가 열려요.</p><button data-act="job2">${ro(c.jobs[2])} 전직하기</button>`;}
+function job2Modal(){const c=C(),s=skillOf(2),ps=c.sk.filter(x=>x.job===2&&!x.kind).map(x=>x.name).join(' · ');return `<h2>2차 전직</h2><p>30레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[2])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 3개(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).</p><button data-act="job2">${ro(c.jobs[2])} 전직하기</button>`;}
 function goDungeon(i){if(i>S.maxDg||mode==='boss')return;S.prog[S.dg]=Math.max(S.prog[S.dg]||1,S.stage);S.dg=i;S.stage=S.prog[i]||1;S.kills=0;
   mobs=[];mshots=[];P.x=400;P.y=F[0].y;P.f=0;P.gr=true;spawnT=0;flash(`${DUNG[i].name} 도착!`,'#9fe7ff');save();dirty=true;}
 
