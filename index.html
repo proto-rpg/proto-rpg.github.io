@@ -525,11 +525,13 @@ const XSK={vera:[['vx1',1,'검술 단련','basic',0.04],['vx2',2,'강철 체력'
  yuna:[['yx1',1,'마력탄 숙련','basic',0.04],['yx2',2,'마나 갑옷','hpPct',0.02],['yx3',3,'원소 집중','crit',0.01],['yx4',4,'성운의 탄환','basic',0.06]],
  kai:[['kx1',1,'투척 숙련','basic',0.04],['kx2',2,'날랜 손','crit',0.01],['kx3',3,'그림자 체력','hpPct',0.02],['kx4',4,'밤의 칼날','basic',0.06]]};
 const XLB={basic:'기본 공격 피해',hpPct:'최대 체력',crit:'치명타 확률',goldPct:'골드 획득'};
-for(const k in XSK){for(const [id,job,name,eff,per] of XSK[k])CLS[k].sk.push({id,job,name,eff,per,label:XLB[eff]});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
+for(const k in XSK){for(const [id,job,name,eff,per] of XSK[k])CLS[k].sk.push({id,job,name,eff,per,label:XLB[eff]});
+  /* 남는 포인트를 쓸 곳: 한계 돌파 (100레벨까지, 레벨당 공격력 +0.5%) */
+  CLS[k].sk.push({id:k[0]+'lim',job:1,name:'한계 돌파',eff:'atkPct',per:0.005,label:'공격력',mx:100});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
 /* 기본 공격: 전직할 때마다 맞는 대상 +1, 타격 횟수 +1, 한 번 공격의 총 피해 +25% */
 const basicAtk=()=>{const c=C(),J=S.job||0,H=(c.hits||1)+J;return{n:c.tg+J,H,per:(c.hits>1?0.6*c.hits:1)*(1+0.25*J)/H*(1+pas('basic'))};};
 for(const k in CLS)CLS[k].sk.filter(s=>s.kind).forEach((s,i)=>{s.ic='ic_'+k+i;});
-for(const k in CLS)CLS[k].sk.forEach(s=>{s.type=s.kind?'공격':'패시브';s.max=s.kind&&s.job?20:10;
+for(const k in CLS)CLS[k].sk.forEach(s=>{s.type=s.kind?'공격':'패시브';s.max=s.mx||(s.kind&&s.job?20:10);
   s.desc=s.kind?(l=>`${s.area} ${Math.round(s.mult(Math.max(1,l))*100)}% × ${s.hits}타${s.multi?` (최대 ${s.multi}마리)`:''} · 쿨타임 ${s.cd}초`)
     :(l=>`${s.label} ${s.sign||'+'}${+(Math.max(1,l)*s.per*100).toFixed(1)}%`+(s.eff2?` · ${s.label2} ${s.sign2||'+'}${+(Math.max(1,l)*s.per2*100).toFixed(0)}%`:''));});
 const STN={str:'힘',dex:'민첩',int:'지능',luk:'행운',vit:'체력'};
@@ -967,7 +969,8 @@ addEventListener('pointerdown',initAudio,true);addEventListener('keydown',initAu
 /* ---------- 성장 ---------- */
 /* 스킬 포인트: 그 레벨에서 배울 수 있는 스킬을 딱 채울 만큼만 준다(남지 않게).
    2~10레벨 1점, 11~29레벨 2점(30레벨 3점), 31~70레벨 1점, 71~120레벨은 5레벨마다 4점, 121~200레벨은 2레벨마다 1점 → 200레벨에 전부 최대 */
-const kpAt=L=>(L<=10?1:L<30?2:L===30?3:L<=70?1:L<=120?(L%5?1:0):(L%2?0:1))+(L%5?0:1); /* 5레벨마다 +1점 (추가 패시브 몫) */
+/* 2~10레벨 1점, 11~30레벨 2점(30레벨 3점), 31~70레벨 1점, 71~120레벨 2점, 121~200레벨 1점, 그리고 5레벨마다 +1점 → 200레벨에 310점 */
+const kpAt=L=>(L<=10?1:L<30?2:L===30?3:L<=70?1:L<=120?2:1)+(L%5?0:1);
 const kpTotal=L=>{let t=0;for(let i=2;i<=L;i++)t+=kpAt(i);return t;};
 const kpSpent=()=>{let t=0;for(const k in S.sk)t+=S.sk[k]||0;return t-(S.job===0&&S.sk.b0>0?1:0);};
 const kpFix=()=>Math.max(0,kpTotal(S.lv)-kpSpent());
