@@ -526,8 +526,8 @@ const XSK={vera:[['vx1',1,'검술 단련','basic',0.04],['vx2',2,'강철 체력'
  kai:[['kx1',1,'투척 숙련','basic',0.04],['kx2',2,'날랜 손','crit',0.01],['kx3',3,'그림자 체력','hpPct',0.02],['kx4',4,'밤의 칼날','basic',0.06]]};
 const XLB={basic:'기본 공격 피해',hpPct:'최대 체력',crit:'치명타 확률',goldPct:'골드 획득'};
 for(const k in XSK){for(const [id,job,name,eff,per] of XSK[k])CLS[k].sk.push({id,job,name,eff,per,label:XLB[eff]});
-  /* 남는 포인트를 쓸 곳: 한계 돌파 (108레벨까지, 레벨당 공격력 +0.5%) */
-  CLS[k].sk.push({id:k[0]+'lim',job:1,name:'한계 돌파',eff:'atkPct',per:0.005,label:'공격력',mx:108});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
+  /* 남는 포인트를 쓸 곳: 한계 돌파 (4차 전직 뒤에 열림, 108레벨까지, 레벨당 공격력 +0.5%) */
+  CLS[k].sk.push({id:k[0]+'lim',job:4,name:'한계 돌파',eff:'atkPct',per:0.005,label:'공격력',mx:108});CLS[k].sk=CLS[k].sk.map((x,i)=>[x,i]).sort((a,b)=>a[0].job-b[0].job||a[1]-b[1]).map(x=>x[0]);}
 /* 기본 공격: 전직할 때마다 맞는 대상 +1, 타격 횟수 +1, 한 번 공격의 총 피해 +25% */
 const basicAtk=()=>{const c=C(),J=S.job||0,H=(c.hits||1)+J;return{n:c.tg+J,H,per:(c.hits>1?0.6*c.hits:1)*(1+0.25*J)/H*(1+pas('basic'))};};
 for(const k in CLS)CLS[k].sk.filter(s=>s.kind).forEach((s,i)=>{s.ic='ic_'+k+i;});
@@ -1883,11 +1883,11 @@ $('#mcard').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   nextModal();});
 function jobModal(){const c=C(),s=c.sk.find(x=>x.job===1&&x.kind);return `<h2>1차 전직</h2><p>10레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[1])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 4개가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).</p><button data-act="job">${ro(c.jobs[1])} 전직하기</button>`;}
 function jobNModal(n){const c=C(),s=skillOf(n),ps=c.sk.filter(x=>x.job===n&&!x.kind).map(x=>x.name).join(' · ');
-  return `<h2>${n}차 전직${n===4?' · 각성':''}</h2><p>${n===3?70:120}레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[n])}</b> 전직하면 ${n===4?'각성 스킬':'공격 스킬'} <b>${gwa(s.name)}</b> 패시브 3개(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).${n===4?' 각성 스킬을 쓰면 캐릭터 컷인이 떠요.':''}</p><button data-act="job${n}">${ro(c.jobs[n])} 전직하기</button>`;}
+  return `<h2>${n}차 전직${n===4?' · 각성':''}</h2><p>${n===3?70:120}레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[n])}</b> 전직하면 ${n===4?'각성 스킬':'공격 스킬'} <b>${gwa(s.name)}</b> 패시브(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).${n===4?' 각성 스킬을 쓰면 캐릭터 컷인이 떠요.':''}</p><button data-act="job${n}">${ro(c.jobs[n])} 전직하기</button>`;}
 function job3Modal(){return jobNModal(3);}
 function job4Modal(){return jobNModal(4);}
 function clearModal(){const d=DUNG[S.maxDg];return `<h2>${DUNG[S.maxDg-1].name} 클리어!</h2><p>새 던전 <b>${d.name}</b>(권장 ${d.lv}레벨)이 열렸어요. 마을 메뉴에서 언제든 오갈 수 있어요.</p><button data-act="godg">${ro(d.name)} 이동</button><button style="background:transparent;color:var(--fg);border:1px solid var(--line)">여기서 계속 사냥</button>`;}
-function job2Modal(){const c=C(),s=skillOf(2),ps=c.sk.filter(x=>x.job===2&&!x.kind).map(x=>x.name).join(' · ');return `<h2>2차 전직</h2><p>30레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[2])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브 3개(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).</p><button data-act="job2">${ro(c.jobs[2])} 전직하기</button>`;}
+function job2Modal(){const c=C(),s=skillOf(2),ps=c.sk.filter(x=>x.job===2&&!x.kind).map(x=>x.name).join(' · ');return `<h2>2차 전직</h2><p>30레벨이 되었어요. ${c.name}가 <b>${ro(c.jobs[2])}</b> 전직하면 공격 스킬 <b>${gwa(s.name)}</b> 패시브(${ps})가 열리고, <b>기본 공격이 강해져요</b>(맞는 대상 +1 · 타격 +1회).</p><button data-act="job2">${ro(c.jobs[2])} 전직하기</button>`;}
 function goDungeon(i){if(i>S.maxDg||mode==='boss')return;S.prog[S.dg]=Math.max(S.prog[S.dg]||1,S.stage);S.dg=i;S.stage=S.prog[i]||1;S.kills=0;
   mobs=[];mshots=[];P.x=400;P.y=F[0].y;P.f=0;P.gr=true;spawnT=0;flash(`${DUNG[i].name} 도착!`,'#9fe7ff');save();dirty=true;}
 
@@ -1911,6 +1911,7 @@ function loadChar(ch){
   Object.assign(P,{x:400,y:F[0].y,vy:0,f:0,gr:true,drop:-1,face:1,atkT:0,anim:0,swing:0,skT:0,skT2:0,skT3:0,skT4:0,potT:0,manual:0,dir:0,dead:0,hurt:0,tgt:null});
   mode='hunt';boss=null;mobs=[];mshots=[];mates=[];shots=[];zones=[];waves=[];texts=[];fx=[];spawnT=0;banner=null;
   if(S.clear&&!S.maxDg)S.maxDg=1;if(!S.prog)S.prog=[1,1];
+  {const lm=S.ch[0]+'lim';if(S.job<4&&S.sk[lm])S.sk[lm]=0;} /* 4차 전직 전에 찍어 둔 한계 돌파는 포인트로 돌려준다 */
   S.kp=kpFix();optFixAll();starterHero();
   mq.length=0;P.hp=maxHp();
   if(S.fresh)mq.push(welcomeText);else{const t=offlineText();if(t)mq.unshift(()=>t);}
