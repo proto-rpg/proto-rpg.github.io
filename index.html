@@ -333,6 +333,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 /* 퀘스트 카드 */
 .mis{grid-template-columns:7cqh 1fr;column-gap:1.2cqh;align-items:center;width:46cqh;background:linear-gradient(rgba(58,49,120,.92),rgba(27,24,64,.92));border:.3cqh solid #7d74cc;border-radius:1.8cqh;box-shadow:0 .5cqh 0 rgba(0,0,0,.35)}
 .mis>img{grid-row:1/4;height:7.4cqh;width:auto;justify-self:center;filter:drop-shadow(0 .3cqh .3cqh rgba(0,0,0,.5))}
+.body{overflow-x:hidden}.body .sec .lbl{white-space:normal}.body .sub{overflow-wrap:anywhere}
 .mis b{color:#ffe08a}.mis span{white-space:nowrap;font-size:2.2cqh}.lbl{white-space:nowrap}.mis i{height:1.4cqh;border:1px solid rgba(255,255,255,.2)}.mis u{background:linear-gradient(90deg,#ffb52a,#ffe36b)}
 .mis.done{border-color:var(--gold);box-shadow:0 0 1.8cqh rgba(255,207,74,.85)}
 .mis em{background:linear-gradient(#ffe36b,#ffb52a);color:var(--ink);border:.3cqh solid #fff0a6;box-shadow:0 .4cqh 0 #b96a08}
@@ -1756,10 +1757,10 @@ function renderPanel(){memoReset();
   }else if(tab==='mate'){
     const HIMG=(h,hg)=>`<img src="assets/${HEROES[h.h].k}.webp" alt="" style="height:${hg};width:auto;max-width:92%;object-fit:contain">`;
     const tm=team(),ns=hSlots(),sel=S.heroes.find(h=>h.id===UI.hsel);if(!sel)UI.hsel=0;
-    h+=`<div class="sec">배치 <span class="lbl">보스전에 함께 싸우고, 배치한 동안 능력치가 올라요</span></div><div class="slots" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(i=>{const x=tm[i];
+    h+=`<div class="sec">배치</div><div class="sub">보스전에 함께 싸우고, 배치한 동안 능력치가 올라요</div><div class="slots" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(i=>{const x=tm[i];
       return x?`<button class="slot" data-act="hsel" data-k="${x.id}" style="border-color:${HGRADE[x.g].c};align-items:center">${HIMG(x,'9cqh')}<span class="n" style="color:${HGRADE[x.g].c}">${HEROES[x.h].n} Lv.${x.lv}</span><span class="e">${HSTN[HEROES[x.h].st]} +${hBonus(x)}%</span></button>`
         :`<div class="slot" style="align-items:center;justify-content:center;min-height:16cqh"><span class="n" style="color:var(--mute)">${i<ns?'비어 있음':HSLOT[i]+'레벨에 열려요'}</span></div>`;}).join('')}</div>`;
-    {const on=bondOn();h+=`<div class="sec">인연 효과 <span class="lbl">두 동료를 함께 배치하면 켜져요 · 둘 중 낮은 등급이 높을수록 강해져요 (일반 ×1 ~ 신화 ×3)</span></div><div class="bonds">${BONDS.map(B=>{const o=on.find(x=>x.B===B),m=o?o.m:1;
+    {const on=bondOn();h+=`<div class="sec">인연 효과</div><div class="sub">두 동료를 함께 배치하면 켜져요. 둘 중 낮은 등급이 높을수록 강해져요 (일반 ×1 ~ 신화 ×3)</div><div class="bonds">${BONDS.map(B=>{const o=on.find(x=>x.B===B),m=o?o.m:1;
       return `<div class="bond${o?' on':''}"><b>${B.n}</b><span class="bh">${B.h.map(i=>HEROES[i].n.split(' ').pop()).join(' + ')}${o?` · <i style="color:${HGRADE[o.g].c};font-style:normal">${HGRADE[o.g].n} ×${m}</i>`:''}</span><span class="be">${B.e.map(([st,v])=>`${HSTN[st]} +${r1(v*m)}%`).join(' · ')}</span></div>`;}).join('')}</div>`;}
     h+=`<div class="row"><div class="sec">영웅 뽑기 <span class="lbl">보유 ${S.heroes.length} / ${HMAX}</span></div><div style="display:flex;gap:1cqh;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn" data-act="pull" data-k="1" ${S.gold<pullCost()||S.heroes.length+1>HMAX?'disabled':''}>1회 ${kor(pullCost())}G</button><button class="btn gold" data-act="pull" data-k="10" ${S.gold<pullCost()*9||S.heroes.length+10>HMAX?'disabled':''}>10회 ${kor(pullCost()*9)}G</button>
