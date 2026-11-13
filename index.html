@@ -238,6 +238,8 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .val{color:#fff}
 .ovl{background:rgba(10,8,30,.72);border-radius:2.6cqh}.ovl .idet{background:linear-gradient(#3a3178,#1f1c47);border-width:.4cqh}
 .iopts span{background:rgba(255,207,74,.16);border:1px solid rgba(255,207,74,.4);color:#ffe08a}
+.iopts.one{display:grid;gap:1cqh}.iopts.one span{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:2.3cqh;line-height:1.25;padding:.5cqh .6cqh;border-radius:1.4cqh}
+.iopts.one i{font-style:normal;font-size:1.7cqh;opacity:.9}.pwdf{font-size:2.6cqh;margin-top:-.4cqh}
 /* 인벤토리 칸 */
 .cell,.dslot{--g:#8f88c9;border:.35cqh solid var(--g);border-radius:1.8cqh;
   background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--g) 46%,transparent),rgba(12,10,36,.82) 74%);box-shadow:inset 0 0 0 .25cqh rgba(0,0,0,.35),inset 0 .5cqh .6cqh rgba(255,255,255,.14)}
@@ -966,6 +968,8 @@ function showEvt(k,d,w){evt={k,t:d,m:d,w};}
 let wantWhirl=false,mode='hunt',mobs=[],boss=null,mates=[],shots=[],zones=[],waves=[],texts=[],fx=[],bossTime=0,spawnT=0,time=0,shake=0,
     paused=false,dirty=true,wantStrike=false,banner=null,want=[0,0,0,0,0],atkHold=0,cutin=null;
 const SKK=['','skT','skT2','skT3','skT4'],SKKEY=['','strike','whirl','s3','s4'],SKLV=[0,10,30,70,120];
+/* 큰 단위 두 개만: 21억 9274만 → 21억 9274만, 1189만 8059 → 1,189만 */
+const korS=n=>{n=Math.floor(n);const U=[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];for(let i=0;i<U.length;i++){const [v,u]=U[i];if(n>=v){const a=Math.floor(n/v),r=i<3?Math.floor((n%v)/U[i+1][0]):0;return a.toLocaleString('en-US')+u+(r?' '+r+U[i+1][1]:'');}}return n.toLocaleString('en-US');};
 function addText(s,x,y,c,big,coin,d){if(texts.length>=36){let i=texts.findIndex(x=>!x.big&&!x.coin);if(i<0)i=0;txFree(texts[i]);texts.splice(i,1);}texts.push({s,x,y,c,t:1,big,coin,d});}
 /* 떠오르는 숫자는 처음 한 번만 작은 캔버스에 그려 두고, 매 프레임에는 그 그림만 붙인다(글꼴·그라데이션을 매번 다시 만들지 않게) */
 const TXP=[],TXF='px "Black Han Sans", sans-serif';
@@ -1555,9 +1559,14 @@ function drawHud(){
   bar(bx+70,by+23,164,8,P.hp/maxHp(),'#ff4d5e');cx.fillStyle='#fff';cx.textAlign='center';cx.font='7px "Gothic A1", sans-serif';cx.fillText(`${kor(P.hp)} / ${kor(maxHp())}`,bx+152,by+29.8);
   bar(bx+70,by+32,164,4,(P.mp===undefined?1:P.mp)/maxMp(),'#4aa8ff');
   bar(bx+70,by+37,164,3,S.lv>=MAXLV?1:S.exp/expNeed(S.lv),'#b8f04a');
-  {const i1=getImg('ui_i1'),i0=getImg('ui_i0');if(ok(i1))cx.drawImage(i1,bx+68,by+41,15,15);if(ok(i0))cx.drawImage(i0,bx+150,by+42,13,13);}
-  cx.textAlign='left';cx.fillStyle='#ffb057';cx.font='13px "Black Han Sans", sans-serif';cx.fillText(kor(power()),bx+86,by+54);
-  cx.fillStyle='#ffe08a';cx.font='12px "Black Han Sans", sans-serif';cx.fillText(kor(S.gold),bx+166,by+54);}
+  {const i1=getImg('ui_i1');if(ok(i1))cx.drawImage(i1,bx+68,by+41,15,15);}
+  /* 전투력과 골드가 겹치지 않게: 길면 큰 단위만 남기고, 그래도 길면 글씨를 줄인다 */
+  {const ff='px "Black Han Sans", sans-serif',x0=bx+86,x1=bx+244;let ps=kor(power()),gs2=kor(S.gold),pf=13,gf=12;
+   const wid=()=>{cx.font=pf+ff;const a=cx.measureText(ps).width;cx.font=gf+ff;return [a,cx.measureText(gs2).width];};
+   let [pw,gw]=wid();if(x0+pw+8+15+gw>x1){ps=korS(power());gs2=korS(S.gold);[pw,gw]=wid();}
+   while(x0+pw+8+15+gw>x1&&pf>9){pf--;gf--;[pw,gw]=wid();}
+   const gx=x0+pw+8;cx.textAlign='left';cx.fillStyle='#ffb057';cx.font=pf+ff;cx.fillText(ps,x0,by+54);
+   const i0=getImg('ui_i0');if(ok(i0))cx.drawImage(i0,gx,by+42,13,13);cx.fillStyle='#ffe08a';cx.font=gf+ff;cx.fillText(gs2,gx+15,by+54);}}
   // 가운데 위: 스테이지 진행 / 보스 체력
   {const cxm=400;cx.textAlign='center';panel(cxm-100,8,200,mode==='boss'?34:24,10);
   if(mode==='boss'&&boss){cx.fillStyle='#ffd6d6';cx.font='12px "Black Han Sans", sans-serif';cx.fillText(`${boss.name}  ${Math.max(0,Math.ceil(boss.hp/boss.max*100))}%`,cxm,22);
@@ -1733,10 +1742,13 @@ function renderPanel(){memoReset();
       ${UI.msel?(()=>{const pk=S.bag.filter(x=>UI.mpick.includes(x.id)),v=pk.reduce((a,x)=>a+salvVal(x),0);return `<div class="row" style="flex-wrap:wrap;gap:1cqh"><span class="sub">분해할 장비를 눌러 고르세요. 등급 버튼은 지금 낀 것보다 약한 장비만 골라요.</span><div style="display:flex;gap:1cqh;flex-wrap:wrap;justify-content:flex-end">${GRADE.map((G,g)=>S.bag.some(x=>x.g===g)?`<button class="btn" data-act="mgrade" data-k="${g}" style="color:${G.c}">${G.n} 고르기</button>`:'').join('')}<button class="btn gold" data-act="msalv" ${pk.length?'':'disabled'}>${pk.length}개 분해 +${kor(v)}G</button></div></div>`;})():''}
       <div class="grades">${GRADE.map(g=>`<span style="color:${g.c}">${g.n}</span>`).join('')}</div></div></div>`;
     if(sel){const eq=isEq(sel),cur=S.eq[sel.k],lock=S.lv<iLv(sel),df=!eq&&cur?iRaw(sel)-iRaw(cur):0,G=GRADE[sel.g],pc=SLOT[sel.k].pct?'%':'';
+      /* 장착하면 종합 전투력이 얼마나 바뀌는지: 잠깐 바꿔 끼워 계산하고 되돌린다 */
+      const pw0=power(),pdf=eq?0:(()=>{S.eq[sel.k]=sel;memoReset();const a=power();S.eq[sel.k]=cur;memoReset();return a-pw0;})();
       h+=`<div class="ovl" data-act="isel" data-k="0"><div class="idet" data-act="noop" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center"><div class="dslot" style="width:13cqh;--g:${G.c}">${IMGS(sel,'66%')}</div><div><div class="sub">${G.n} ${SLOT[sel.k].slot}${eq?' · 장착 중':''}</div><div class="name" style="color:${G.c};font-size:3.6cqh">${iName(sel)}${sel.amp?` +${sel.amp}`:''}</div>
         <div class="sub">${iLv(sel)}레벨부터 장착 · 품질 ${Math.round(sel.q*100)}%</div></div></div><button class="btn" data-act="isel" data-k="0" aria-label="닫기">닫기</button></div>
         <div class="istat"><b>${SLOT[sel.k].stat} +${kor(iMain(sel))}${pc}</b>${df?`<span style="color:${df>0?'#58d08a':'#ff8a8a'}">${df>0?'▲':'▼'} ${kor(Math.abs(SLOT[sel.k].pct?r1(df):Math.round(df)))}${pc}</span>`:''}</div>
-        ${sel.o.length?`<div class="iopts">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><b style="font-weight:400;opacity:.85">${GRADE[og].n}</b> ${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
+        ${eq?'':`<div class="pwdf" style="color:${pdf>0?'#58d08a':pdf<0?'#ff8a8a':'#cfcdf0'}">장착하면 전투력 ${pdf>0?'▲ '+kor(pdf):pdf<0?'▼ '+kor(-pdf):'변화 없음'} <span class="lbl">(${kor(pw0)} → ${kor(pw0+pdf)})</span></div>`}
+        ${sel.o.length?`<div class="iopts one" style="grid-template-columns:repeat(${sel.o.length},minmax(0,1fr))">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><i>${GRADE[og].n}</i>${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
         <div class="ibtns"><button class="btn" data-act="iamp" ${sel.amp>=AMPMAX||S.gold<ampCost(sel)?'disabled':''}>${sel.amp>=AMPMAX?'증폭 최대':`증폭 +${sel.amp+1} · ${kor(ampCost(sel))}G · 성공 ${AMPP[sel.amp]}%`}</button>
           ${sel.g?`<button class="btn" data-act="ireroll" ${S.gold<rerollCost(sel)?'disabled':''}>옵션 재설정 · ${kor(rerollCost(sel))}G</button>`:''}</div>
         <div class="ibtns">${eq?'':`<button class="btn danger" data-act="isalv" style="flex:1">분해 +${kor(salvVal(sel))}G</button><button class="btn gold" data-act="ieq" style="flex:1" ${lock?'disabled':''}>${lock?iLv(sel)+'레벨 필요':'장착'}</button>`}</div>
@@ -1928,6 +1940,9 @@ const st=$('#stage');
 if(st.requestFullscreen&&document.fullscreenEnabled){const bf=$('#bF');bf.hidden=false;
   bf.addEventListener('click',()=>{(document.fullscreenElement?document.exitFullscreen():st.requestFullscreen()).catch(()=>{});});}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
+/* 왼쪽 위 프로필을 누르면 캐릭터 창 */
+cv.addEventListener('click',e=>{if(editing||selecting)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
+  if(x>=6&&x<=254&&y>=2&&y<=66){sfx('click');if(tab==='char')closePop();else{tab=null;openPop('char');}}});
 const keys={};
 const actOf=k=>{const K=S.opt.keys;for(const a in K)if(K[a]===k)return a;return null;};
 /* 입력칸(쿠폰·저장 코드)에 글자를 치는 중에는 게임 단축키로 가로채지 않는다 */
