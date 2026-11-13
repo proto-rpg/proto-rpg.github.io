@@ -15,14 +15,14 @@
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Gothic+A1:wght@500;700&family=Gowun+Dodum&display=swap">
 <style>
 /* 가로 전용: 16:9 게임 화면 하나에 모든 UI를 겹쳐 올림 (왼쪽 아래 정보창 · 가운데 메뉴 · 오른쪽 스킬) */
 :root{
   --bg:#070b0c; --glass:rgba(14,20,24,.78); --glass2:rgba(30,40,46,.88); --line:rgba(255,255,255,.16);
   --fg:#f1f5f2; --mute:#a3b4b2; --gold:#f2c14e; --crimson:#d9434f; --sky:#7cc4ff;
   --f-display:'Black Han Sans','Gothic A1',system-ui,sans-serif;
-  --f-body:'Gothic A1',system-ui,-apple-system,sans-serif;
+  --f-body:'Gowun Dodum','Gothic A1',system-ui,-apple-system,sans-serif;
   color-scheme:dark;
 }
 [hidden]{display:none!important}
@@ -238,6 +238,12 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .val{color:#fff}
 .ovl{background:rgba(10,8,30,.72);border-radius:2.6cqh}.ovl .idet{background:linear-gradient(#3a3178,#1f1c47);border-width:.4cqh}
 .iopts span{background:rgba(255,207,74,.16);border:1px solid rgba(255,207,74,.4);color:#ffe08a}
+.iopts.one{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1cqh}.iopts.one span{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:2.3cqh;line-height:1.25;padding:.5cqh .6cqh;border-radius:1.4cqh}
+.pi{width:4.6cqh;height:4.6cqh;border-radius:50%;border:.3cqh solid #cfc8ff;background:rgba(255,255,255,.08);color:#fff;font:700 2.8cqh/1 Georgia,'Times New Roman',serif;font-style:italic;display:flex;align-items:center;justify-content:center;padding:0;flex:none}
+.pop .pi#popI{position:absolute;right:6.6cqh;top:-1.2cqh;z-index:3;background:linear-gradient(#5b4fc4,#2d266e);border-color:var(--trim,#e8b548)}
+.hbtns{display:flex;gap:1.2cqh;align-items:center}
+#mcard .itxt{text-align:left;max-height:52cqh;overflow:auto;font:400 2.7cqh/1.65 'Gowun Dodum','Gothic A1',sans-serif;color:#ece9ff}#mcard .itxt p{margin:0 0 1.4cqh}#mcard .itxt b{color:#ffe08a;font-weight:700}
+.iopts.one i{font-style:normal;font-size:1.7cqh;opacity:.9}.pwdf{font-size:2.6cqh;margin-top:-.4cqh}
 /* 인벤토리 칸 */
 .cell,.dslot{--g:#8f88c9;border:.35cqh solid var(--g);border-radius:1.8cqh;
   background:radial-gradient(circle at 50% 38%,color-mix(in srgb,var(--g) 46%,transparent),rgba(12,10,36,.82) 74%);box-shadow:inset 0 0 0 .25cqh rgba(0,0,0,.35),inset 0 .5cqh .6cqh rgba(255,255,255,.14)}
@@ -334,7 +340,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .mis{grid-template-columns:7cqh 1fr;column-gap:1.2cqh;align-items:center;width:46cqh;background:linear-gradient(rgba(58,49,120,.92),rgba(27,24,64,.92));border:.3cqh solid #7d74cc;border-radius:1.8cqh;box-shadow:0 .5cqh 0 rgba(0,0,0,.35)}
 .mis>img{grid-row:1/4;height:7.4cqh;width:auto;justify-self:center;filter:drop-shadow(0 .3cqh .3cqh rgba(0,0,0,.5))}
 .body{overflow-x:hidden}.body .sec .lbl{white-space:normal}.body .sub{overflow-wrap:anywhere}
-.mis b{color:#ffe08a}.mis span{white-space:nowrap;font-size:2.2cqh}.lbl{white-space:nowrap}.mis i{height:1.4cqh;border:1px solid rgba(255,255,255,.2)}.mis u{background:linear-gradient(90deg,#ffb52a,#ffe36b)}
+.mis b{color:#ffe08a}.mis b,.mis span{min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mis span{font-size:2.2cqh}.mis i{min-width:0}.lbl{white-space:nowrap}.mis i{height:1.4cqh;border:1px solid rgba(255,255,255,.2)}.mis u{background:linear-gradient(90deg,#ffb52a,#ffe36b)}
 .mis.done{border-color:var(--gold);box-shadow:0 0 1.8cqh rgba(255,207,74,.85)}
 .mis em{background:linear-gradient(#ffe36b,#ffb52a);color:var(--ink);border:.3cqh solid #fff0a6;box-shadow:0 .4cqh 0 #b96a08}
 /* 알림 카드 · 캐릭터 선택 · 안내 */
@@ -397,7 +403,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 
   <div class="editbar" id="editbar" hidden>버튼을 끌어서 원하는 곳에 놓으세요<button class="btn" id="editReset">기본 위치</button><button class="btn gold" id="editDone">완료</button></div>
   <div class="pop" id="pop" hidden>
-    <header><h2 id="popT">캐릭터</h2><button class="x" id="popX" aria-label="닫기">✕</button></header>
+    <header><h2 id="popT">캐릭터</h2><button class="pi" id="popI" aria-label="도움말" hidden>i</button><button class="x" id="popX" aria-label="닫기">✕</button></header>
     <div class="body" id="panel"></div>
   </div>
   <div class="sel" id="sel">
@@ -966,6 +972,8 @@ function showEvt(k,d,w){evt={k,t:d,m:d,w};}
 let wantWhirl=false,mode='hunt',mobs=[],boss=null,mates=[],shots=[],zones=[],waves=[],texts=[],fx=[],bossTime=0,spawnT=0,time=0,shake=0,
     paused=false,dirty=true,wantStrike=false,banner=null,want=[0,0,0,0,0],atkHold=0,cutin=null;
 const SKK=['','skT','skT2','skT3','skT4'],SKKEY=['','strike','whirl','s3','s4'],SKLV=[0,10,30,70,120];
+/* 큰 단위 두 개만: 21억 9274만 → 21억 9274만, 1189만 8059 → 1,189만 */
+const korS=n=>{n=Math.floor(n);const U=[[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];for(let i=0;i<U.length;i++){const [v,u]=U[i];if(n>=v){const a=Math.floor(n/v),r=i<3?Math.floor((n%v)/U[i+1][0]):0;return a.toLocaleString('en-US')+u+(r?' '+r+U[i+1][1]:'');}}return n.toLocaleString('en-US');};
 function addText(s,x,y,c,big,coin,d){if(texts.length>=36){let i=texts.findIndex(x=>!x.big&&!x.coin);if(i<0)i=0;txFree(texts[i]);texts.splice(i,1);}texts.push({s,x,y,c,t:1,big,coin,d});}
 /* 떠오르는 숫자는 처음 한 번만 작은 캔버스에 그려 두고, 매 프레임에는 그 그림만 붙인다(글꼴·그라데이션을 매번 다시 만들지 않게) */
 const TXP=[],TXF='px "Black Han Sans", sans-serif';
@@ -1555,9 +1563,14 @@ function drawHud(){
   bar(bx+70,by+23,164,8,P.hp/maxHp(),'#ff4d5e');cx.fillStyle='#fff';cx.textAlign='center';cx.font='7px "Gothic A1", sans-serif';cx.fillText(`${kor(P.hp)} / ${kor(maxHp())}`,bx+152,by+29.8);
   bar(bx+70,by+32,164,4,(P.mp===undefined?1:P.mp)/maxMp(),'#4aa8ff');
   bar(bx+70,by+37,164,3,S.lv>=MAXLV?1:S.exp/expNeed(S.lv),'#b8f04a');
-  {const i1=getImg('ui_i1'),i0=getImg('ui_i0');if(ok(i1))cx.drawImage(i1,bx+68,by+41,15,15);if(ok(i0))cx.drawImage(i0,bx+150,by+42,13,13);}
-  cx.textAlign='left';cx.fillStyle='#ffb057';cx.font='13px "Black Han Sans", sans-serif';cx.fillText(kor(power()),bx+86,by+54);
-  cx.fillStyle='#ffe08a';cx.font='12px "Black Han Sans", sans-serif';cx.fillText(kor(S.gold),bx+166,by+54);}
+  {const i1=getImg('ui_i1');if(ok(i1))cx.drawImage(i1,bx+68,by+41,15,15);}
+  /* 전투력과 골드가 겹치지 않게: 길면 큰 단위만 남기고, 그래도 길면 글씨를 줄인다 */
+  {const ff='px "Black Han Sans", sans-serif',x0=bx+86,x1=bx+244;let ps=kor(power()),gs2=kor(S.gold),pf=13,gf=12;
+   const wid=()=>{cx.font=pf+ff;const a=cx.measureText(ps).width;cx.font=gf+ff;return [a,cx.measureText(gs2).width];};
+   let [pw,gw]=wid();if(x0+pw+8+15+gw>x1){ps=korS(power());gs2=korS(S.gold);[pw,gw]=wid();}
+   while(x0+pw+8+15+gw>x1&&pf>9){pf--;gf--;[pw,gw]=wid();}
+   const gx=x0+pw+8;cx.textAlign='left';cx.fillStyle='#ffb057';cx.font=pf+ff;cx.fillText(ps,x0,by+54);
+   const i0=getImg('ui_i0');if(ok(i0))cx.drawImage(i0,gx,by+42,13,13);cx.fillStyle='#ffe08a';cx.font=gf+ff;cx.fillText(gs2,gx+15,by+54);}}
   // 가운데 위: 스테이지 진행 / 보스 체력
   {const cxm=400;cx.textAlign='center';panel(cxm-100,8,200,mode==='boss'?34:24,10);
   if(mode==='boss'&&boss){cx.fillStyle='#ffd6d6';cx.font='12px "Black Han Sans", sans-serif';cx.fillText(`${boss.name}  ${Math.max(0,Math.ceil(boss.hp/boss.max*100))}%`,cxm,22);
@@ -1620,7 +1633,8 @@ function statRow(k,name,eff){return `<div class="row"><div><div class="lbl">${na
 const ICON=k=>`<img src="assets/${k}.webp" alt="" style="height:7cqh;width:auto;max-width:100%;object-fit:contain;align-self:center">`;
 function statEff(k){const c=C(),v=S.st[k];if(k===c.main)return `공격력 +${v*2} · 주 스탯`;if(k==='vit')return `최대 체력 +${v*20}`;
   if(k==='dex')return `치명타 ${(critRate()*100).toFixed(1)}%`;if(k==='luk')return `골드 +${v*2}%`;return '이 직업은 효과 없음';}
-function renderPanel(){memoReset();
+let HELP=[];const help=t=>{HELP.push(t);return '';};
+function renderPanel(){memoReset();HELP=[];
   if(!tab)return;
   let h='';
   if(tab==='skin'){
@@ -1628,16 +1642,16 @@ function renderPanel(){memoReset();
     for(const K of SKINS){const o=skOwn(K.id),full=o.every(x=>x),on=skOn()===K.id,nm=K.names[S.ch];
       h+=`<div class="row"><div class="sec">스킨 · ${K.n} <span class="lbl">${o.filter(x=>x).length} / 4</span></div>${full?`<button class="btn${on?' gold':''}" data-act="skwear" data-k="${K.id}">${on?'입는 중 (벗기)':'입기'}</button>`:''}</div>
       <div class="skbox"><img src="assets/${S.ch}_${K.id}.webp" alt="" style="${full?'':'filter:brightness(.35) saturate(.4)'}"><div class="skparts">${K.parts.map((pt,i)=>`<div class="item${o[i]?'':' unown'}"><div style="min-width:0"><div class="name" style="font-size:2.9cqh;white-space:nowrap${o[i]?';color:#ffe08a':''}">${nm[i]}</div><div class="sub">${HSTN[pt.st]} +${pt.v}%</div></div>${o[i]?'<span class="lbl">보유</span>':`<button class="btn gold" data-act="skbuy" data-k="${K.id}" data-n="${i}" ${S.gold<K.cost[i]?'disabled':''}>${kor(K.cost[i])}G</button>`}</div>`).join('')}</div></div>
-      <p class="note">부위마다 따로 사고, 산 부위의 능력치는 바로 적용돼요. 네 부위를 다 모아 입으면 모습이 바뀌고 <b style="color:#ffe08a">세트 효과(${K.set.map(([st,v])=>`${HSTN[st]} +${v}%`).join(', ')})</b>가 더해져요.</p>`;}
+      ${help(`부위마다 따로 사고, 산 부위의 능력치는 바로 적용돼요. 네 부위를 다 모아 입으면 모습이 바뀌고 <b style="color:#ffe08a">세트 효과(${K.set.map(([st,v])=>`${HSTN[st]} +${v}%`).join(', ')})</b>가 더해져요.`)}`;}
     if(!SKINS.length)h+=`<p class="note">아직 스킨이 없어요.</p>`;
   }else if(tab==='shop'){
     h+=`<button class="btn" data-act="goto" data-k="town" style="align-self:flex-start">← 마을</button>`;
     h+=`<div class="row"><div class="sec">상점</div><div class="pts">${kor(S.gold)} G</div></div><div class="lbl" style="margin:.4cqh 0">일반 등급 장비</div>
-    <p class="note">내 레벨에 맞는 일반 등급 장비를 팔아요. 지금 낀 장비보다 좋은 것만 살 수 있고, 사면 바로 장착돼요. 더 높은 등급은 사냥과 보스에서 나와요.</p>
+    ${help(`내 레벨에 맞는 일반 등급 장비를 팔아요. 지금 낀 장비보다 좋은 것만 살 수 있고, 사면 바로 장착돼요. 더 높은 등급은 사냥과 보스에서 나와요.`)}
     ${shopTiers().map(t=>`<div class="grid2">${SLK.map(k=>{const it=shopItem(k,t),cur=S.eq[k],up=!cur||iScore(it)>iScore(cur),pr=shopPrice(t);return `<div class="item${up?'':' unown'}"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${iIcon(it)}.webp" alt="" style="height:6.4cqh"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${iName(it)} <span class="lbl">Lv.${iLv(it)}</span></div><div class="sub">${SLOT[k].stat} +${kor(iMain(it))}${SLOT[k].pct?'%':''}</div></div></div>
       ${up?`<button class="btn gold" data-act="buygear" data-k="${k}" data-n="${t}" ${S.gold<pr||S.bag.length>=bagMax()?'disabled':''}>${kor(pr)}G</button>`:'<span class="lbl">착용 장비가 더 좋음</span>'}</div>`;}).join('')}</div>`).join('<div style="height:1cqh"></div>')}
     <div class="lbl" style="margin:1cqh 0 .4cqh">포션</div>
-    <p class="note">가지고 있으면 자동으로 써요. 체력은 35% 아래로 떨어질 때, 마나는 스킬을 쓸 마나가 모자랄 때예요. 사냥 중에는 작은 것부터, 보스전에서는 큰 것부터 써요.</p>
+    ${help(`가지고 있으면 자동으로 써요. 체력은 35% 아래로 떨어질 때, 마나는 스킬을 쓸 마나가 모자랄 때예요. 사냥 중에는 작은 것부터, 보스전에서는 큰 것부터 써요.`)}
     <div class="grid2">${HPK.concat(MPK).map(k=>{const T=POT[k],pr=potP(k);return `<div class="item"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/gear5.webp" alt="" style="height:${T.h>=1?8:T.h>=0.5?6.6:5.2}cqh${T.hp?'':';filter:hue-rotate(215deg) saturate(1.4)'}"><div style="min-width:0"><div class="name" style="white-space:nowrap;font-size:2.9cqh">${T.n}</div><div class="sub">${Math.round(T.h*100)}% 회복 · 보유 ${S[k]||0}개</div></div></div>
       <div style="display:flex;gap:1cqh;flex:none"><button class="btn" data-act="buy" data-k="${k}" data-n="1" ${S.gold<pr?'disabled':''}>${kor(pr)}G</button><button class="btn gold" data-act="buy" data-k="${k}" data-n="10" ${S.gold<pr*10?'disabled':''}>×10</button></div></div>`;}).join('')}</div>`;
   }else if(tab==='daily'){
@@ -1654,7 +1668,7 @@ function renderPanel(){memoReset();
      if(UI.ddRes){const R=UI.ddRes,T=DDT[R.k];h+=`<div class="item" style="border-color:${T.c}"><div style="min-width:0"><div class="name" style="color:${T.c}">${T.n} ${R.done?'완료!':'종료'}</div><div class="sub">처치 ${kor(R.n)}마리 · 골드 +${kor(R.g)} · 경험치 +${kor(R.e)}${R.k==='elite'?` · 장비 ${R.it}개`:''}${R.done?'':' · 끝까지 버티지 못해 임무에는 들어가지 않아요'}</div></div></div>`;}
      h+=`<div class="sec">요일 던전 <span class="lbl">하루 ${DDMAX}번 · ${DDTIME}초 · 남은 입장 ${left} / ${DDMAX}</span></div><div class="grid2">${['gold','exp','elite'].map(k=>{const T=DDT[k],open=w==='all'||w===k,days=DDW.map((x,i)=>x===k?'일월화수목금토'[i]:'').join('').split('').concat('일').join('·');
        return `<div class="item" style="border-color:${open?T.c:'var(--line)'};${open?'':'opacity:.55'}"><div style="min-width:0"><div class="name" style="color:${T.c}">${T.n} <span class="lbl">${days}</span></div><div class="sub">${T.d}</div></div><button class="btn ${open&&left>0?'gold':''}" data-act="ddgo" data-k="${k}" ${open&&left>0&&mode==='hunt'?'':'disabled'}>${!open?'오늘은 닫힘':left>0?'입장':'내일 다시'}</button></div>`;}).join('')}</div>
-     <p class="note">일요일에는 세 던전이 모두 열려요. 던전은 지금 스테이지 세기로 나오고, 쓰러지거나 '나가기'를 누르면 그때까지 얻은 보상만 받고 끝나요. 60초를 끝까지 버텨야 '요일 던전 완료' 임무가 채워져요.</p>`;}
+     ${help(`일요일에는 세 던전이 모두 열려요. 던전은 지금 스테이지 세기로 나오고, 쓰러지거나 '나가기'를 누르면 그때까지 얻은 보상만 받고 끝나요. 60초를 끝까지 버텨야 '요일 던전 완료' 임무가 채워져요.`)}`;}
   }else if(tab==='char'){
     {const K=SKINS[0],n=SKINS.reduce((a,K)=>a+skOwn(K.id).filter(x=>x).length,0);h+=`<div class="item" style="border-color:var(--gold)"><div style="display:flex;align-items:center;gap:1.6cqh;min-width:0"><img src="assets/${S.ch}_${K.id}.webp" alt="" style="height:9cqh"><div style="min-width:0"><div class="name">스킨</div><div class="sub">모은 부위 ${n} / ${SKINS.length*4}${skOn()?' · 입는 중':''}</div></div></div><button class="btn gold" data-act="goto" data-k="skin">스킨 보기</button></div>`;}
     h+=`<div class="row"><div class="sec">스탯</div><div class="pts">남은 포인트 ${S.sp}</div></div>
@@ -1675,13 +1689,13 @@ function renderPanel(){memoReset();
     h+=`<div class="row"><div class="sec">칭호 <span class="lbl">${own.length} / ${TTL.length}</span></div><button class="btn" data-act="uitog" data-k="ttl">${UI.ttl?'접기 ▲':'펼치기 ▼'}</button></div>
       <div class="iopts">${Object.keys(sum).length?Object.keys(sum).map(k=>`<span>${HSTN[k]} +${sum[k]}%</span>`).join(''):'<span>아직 얻은 칭호가 없어요</span>'}</div>`;
     if(UI.ttl)h+=`<div class="grid2">${TTL.map(T=>{const has=own.includes(T.id),on=S.ttlOn===T.id;return `<div class="item${has?'':' unown'}"${on?' style="border-color:var(--gold)"':''}><div style="min-width:0"><div class="name"${has?' style="color:#ffe08a"':''}>${T.n}</div><div class="sub">${T.d} · ${HSTN[T.st]} +${T.v}%</div></div>${has?`<button class="btn${on?' gold':''}" data-act="ttl" data-k="${T.id}">${on?'착용 중':'착용'}</button>`:'<span class="lbl">미획득</span>'}</div>`;}).join('')}</div>
-      <p class="note">얻은 칭호의 보너스는 착용하지 않아도 전부 적용돼요. 착용한 칭호는 캐릭터 머리 위에 표시돼요.</p>`;}
+      ${help(`얻은 칭호의 보너스는 착용하지 않아도 전부 적용돼요. 착용한 칭호는 캐릭터 머리 위에 표시돼요.`)}`;}
   }else if(tab==='grow'){
     h+=`<div class="row"><div class="sec">훈련 <span class="lbl">골드로 기본 능력치를 올려요</span></div><div class="pts">${kor(S.gold)} G</div></div>`;
     for(const T of TRN){const L=trLv(T.k),cap=trCap(T),mx=L>=cap,c1=trCost(L);
       h+=`<div class="trow"><div class="tico"><img src="assets/ui_t${TRN.indexOf(T)}.webp" alt=""></div><div><div class="name">${T.n} <span class="lbl">Lv.${L} / ${cap}</span></div><div class="sub">${T.d} +${Math.round(L*T.per*100)/100}${T.u}${mx?'':` → +${Math.round((L+1)*T.per*100)/100}${T.u}`}</div></div>
       <div style="display:flex;gap:1cqh"><button class="btn gold" data-act="train" data-k="${T.k}" data-n="1" ${mx||S.gold<c1?'disabled':''}>${mx?'최대':kor(c1)+'G 훈련'}</button><button class="btn" data-act="train" data-k="${T.k}" data-n="10" ${mx||S.gold<c1?'disabled':''}>×10</button></div></div>`;}
-    h+=`<p class="note">훈련 단계 한도는 내 레벨 × 2예요(생명력 회복은 60까지). 레벨이 오르면 한도도 늘어요. 4차 각성과 어빌리티는 스킬·장비 메뉴에서 키워요.</p>`;
+    h+=`${help(`훈련 단계 한도는 내 레벨 × 2예요(생명력 회복은 60까지). 레벨이 오르면 한도도 늘어요. 4차 각성과 어빌리티는 스킬·장비 메뉴에서 키워요.`)}`;
   }else if(tab==='set'){
     const SC=[['ch','캐릭터','캐릭터 변경 · 초기화'],['bt','전투','스킬 자동 사용 · 포션 안내'],['vw','화면','데미지 숫자 · 흔들림 · 컷인'],['snd','소리','효과음 · 배경음악 크기'],['btn','버튼 배치','크기 · 투명도 · 위치 옮기기'],['key','PC 키 · 조작법','키 바꾸기 · 조작 안내'],['sv','저장','코드 만들기 · 불러오기'],['cp','쿠폰','쿠폰 코드 입력'],['info','게임 정보','버전 · 내 기록']],cat=UI.setCat;
     if(!cat)h+=`<div class="setgrid">${SC.map(([k,n,d])=>`<button class="settile" data-act="setcat" data-k="${k}"><b>${n}</b><span>${d}</span></button>`).join('')}</div>`;
@@ -1733,39 +1747,42 @@ function renderPanel(){memoReset();
       ${UI.msel?(()=>{const pk=S.bag.filter(x=>UI.mpick.includes(x.id)),v=pk.reduce((a,x)=>a+salvVal(x),0);return `<div class="row" style="flex-wrap:wrap;gap:1cqh"><span class="sub">분해할 장비를 눌러 고르세요. 등급 버튼은 지금 낀 것보다 약한 장비만 골라요.</span><div style="display:flex;gap:1cqh;flex-wrap:wrap;justify-content:flex-end">${GRADE.map((G,g)=>S.bag.some(x=>x.g===g)?`<button class="btn" data-act="mgrade" data-k="${g}" style="color:${G.c}">${G.n} 고르기</button>`:'').join('')}<button class="btn gold" data-act="msalv" ${pk.length?'':'disabled'}>${pk.length}개 분해 +${kor(v)}G</button></div></div>`;})():''}
       <div class="grades">${GRADE.map(g=>`<span style="color:${g.c}">${g.n}</span>`).join('')}</div></div></div>`;
     if(sel){const eq=isEq(sel),cur=S.eq[sel.k],lock=S.lv<iLv(sel),df=!eq&&cur?iRaw(sel)-iRaw(cur):0,G=GRADE[sel.g],pc=SLOT[sel.k].pct?'%':'';
+      /* 장착하면 종합 전투력이 얼마나 바뀌는지: 잠깐 바꿔 끼워 계산하고 되돌린다 */
+      const pw0=power(),pdf=eq?0:(()=>{S.eq[sel.k]=sel;memoReset();const a=power();S.eq[sel.k]=cur;memoReset();return a-pw0;})();
       h+=`<div class="ovl" data-act="isel" data-k="0"><div class="idet" data-act="noop" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center"><div class="dslot" style="width:13cqh;--g:${G.c}">${IMGS(sel,'66%')}</div><div><div class="sub">${G.n} ${SLOT[sel.k].slot}${eq?' · 장착 중':''}</div><div class="name" style="color:${G.c};font-size:3.6cqh">${iName(sel)}${sel.amp?` +${sel.amp}`:''}</div>
-        <div class="sub">${iLv(sel)}레벨부터 장착 · 품질 ${Math.round(sel.q*100)}%</div></div></div><button class="btn" data-act="isel" data-k="0" aria-label="닫기">닫기</button></div>
+        <div class="sub">${iLv(sel)}레벨부터 장착 · 품질 ${Math.round(sel.q*100)}%</div></div></div><div class="hbtns"><button class="pi in" data-act="dinfo" aria-label="도움말">i</button><button class="btn" data-act="isel" data-k="0" aria-label="닫기">닫기</button></div></div>
         <div class="istat"><b>${SLOT[sel.k].stat} +${kor(iMain(sel))}${pc}</b>${df?`<span style="color:${df>0?'#58d08a':'#ff8a8a'}">${df>0?'▲':'▼'} ${kor(Math.abs(SLOT[sel.k].pct?r1(df):Math.round(df)))}${pc}</span>`:''}</div>
-        ${sel.o.length?`<div class="iopts">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><b style="font-weight:400;opacity:.85">${GRADE[og].n}</b> ${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
+        ${eq?'':`<div class="pwdf" style="color:${pdf>0?'#58d08a':pdf<0?'#ff8a8a':'#cfcdf0'}">전투력 ${pdf>0?'▲ '+kor(pdf):pdf<0?'▼ '+kor(-pdf):'변화 없음'}</div>`}
+        ${sel.o.length?`<div class="iopts one">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><i>${GRADE[og].n}</i>${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
         <div class="ibtns"><button class="btn" data-act="iamp" ${sel.amp>=AMPMAX||S.gold<ampCost(sel)?'disabled':''}>${sel.amp>=AMPMAX?'증폭 최대':`증폭 +${sel.amp+1} · ${kor(ampCost(sel))}G · 성공 ${AMPP[sel.amp]}%`}</button>
           ${sel.g?`<button class="btn" data-act="ireroll" ${S.gold<rerollCost(sel)?'disabled':''}>옵션 재설정 · ${kor(rerollCost(sel))}G</button>`:''}</div>
         <div class="ibtns">${eq?'':`<button class="btn danger" data-act="isalv" style="flex:1">분해 +${kor(salvVal(sel))}G</button><button class="btn gold" data-act="ieq" style="flex:1" ${lock?'disabled':''}>${lock?iLv(sel)+'레벨 필요':'장착'}</button>`}</div>
-        <div class="sub">증폭은 기본 능력치를 단계마다 6% 올려요. 실패하면 골드만 사라져요.${sel.g?' 옵션은 줄마다 등급(일반 60% · 레어 28% · 유니크 10% · 전설 2%)이 있고 등급이 높을수록 수치가 크고, 윗등급의 최저치는 아랫등급의 최고치예요. 재설정하면 종류와 수치는 바뀌지만 줄의 등급은 내려가지 않아요.':''}</div></div></div>`;}
-    h+=S.lv<=120?`<p class="note">슬롯 강화는 121레벨부터 열려요. 강화 단계는 장비를 바꿔도 슬롯에 남아요.</p>`
+        ${(UI.dHelp=`증폭은 기본 능력치를 단계마다 6% 올려요. 실패하면 골드만 사라져요.${sel.g?' 옵션은 줄마다 등급(일반 60% · 레어 28% · 유니크 10% · 전설 2%)이 있고 등급이 높을수록 수치가 크고, 윗등급의 최저치는 아랫등급의 최고치예요. 재설정하면 종류와 수치는 바뀌지만 줄의 등급은 내려가지 않아요.':''}`,'')}</div></div>`;}
+    h+=S.lv<=120?`${help(`슬롯 강화는 121레벨부터 열려요. 강화 단계는 장비를 바꿔도 슬롯에 남아요.`)}`
      :`<div class="row"><button class="btn" data-act="uitog" data-k="enh">슬롯 강화 ${UI.enh?'접기 ▲':'펼치기 ▼'} <span class="lbl">한도 +${enhCap()}</span></button><button class="btn gold" data-act="enhAll">가능한 만큼 전체 강화</button></div>
       ${UI.enh?SLK.map(k=>{const n=S.enh[k]||0,has=S.eq[k],mx=n>=enhCap();return `<div class="item"><div><div class="name">${ENHN[k]} <span class="lbl">+${n}</span></div><div class="sub">1단계마다 능력치 ${Math.round((EM[k]-1)*1000)/10}% 증가${has?'':' · 장비가 없어요'}</div></div><button class="btn" data-act="enh" data-k="${k}" ${!has||mx||S.gold<enhCost(n)?'disabled':''}>${mx?'한도':kor(enhCost(n))+'G'}</button></div>`;}).join(''):''}`;
     h+=`<div class="row"><button class="btn" data-act="uitog" data-k="dex">무기 도감 ${UI.dex?'접기 ▲':'펼치기 ▼'} <span class="lbl">${Object.keys(S.dex).length} / ${WEAPONS.length}</span></button></div>`;
-    if(UI.dex){h+=`<p class="note">일반 몬스터 ${DROP.mob*100}%(${PITY}마리 안에 반드시 1개), 중간 보스 ${DROP.mini*100}%, 던전 최종 보스는 무기 1개 + 방어구 1개 확정. 보스일수록 좋은 등급이 잘 나와요.</p>`;
+    if(UI.dex){h+=`${help(`일반 몬스터 ${DROP.mob*100}%(${PITY}마리 안에 반드시 1개), 중간 보스 ${DROP.mini*100}%, 던전 최종 보스는 무기 1개 + 방어구 1개 확정. 보스일수록 좋은 등급이 잘 나와요.`)}`;
       WEAPONS.forEach((w,i)=>{const g=S.dex[i],own=g!==undefined;
         h+=`<div class="item${own?'':' unown'}"><div style="display:flex;align-items:center;gap:2cqh"><img src="assets/${wicon(i)}.webp" alt="" style="height:7cqh${own?'':';filter:grayscale(1) brightness(.45)'}"><div><div class="name">${wname(i)}</div><div class="sub">${w.lv}레벨 · 공격력 약 ${kor(w.atk)} · ${stageOf(i)}부터 드롭</div></div></div><span class="lbl" style="${own?'color:'+GRADE[g].c:''}">${own?'최고 '+GRADE[g].n:'미획득'}</span></div>`;});}
   }else if(tab==='skill'){
     const c=C();h+=`<div class="row"><div class="sec">${S.job?c.jobs[S.job]+' 스킬':'스킬'}</div><div class="pts">남은 포인트 ${S.kp}</div></div>`;
-    if(!S.job)h+=`<p class="note">전직 전에는 기본 스킬 ${c.sk[0].name}을(를) 써요. 10레벨에 1차 전직(${c.jobs[1]})을 하면 기본 스킬에 쓴 포인트는 돌려받고 직업 스킬이 열려요.</p>`;
+    if(!S.job)h+=`${help(`전직 전에는 기본 스킬 ${c.sk[0].name}을(를) 써요. 10레벨에 1차 전직(${c.jobs[1]})을 하면 기본 스킬에 쓴 포인트는 돌려받고 직업 스킬이 열려요.`)}`;
     {const vis=c.sk.filter(sk=>!(sk.job>Math.max(1,S.job)||(sk.job===0&&S.job>0))),act=vis.filter(k=>k.kind),pasv=vis.filter(k=>!k.kind);
     h+=`<div class="skrow">${act.map(sk=>{const l=S.sk[sk.id]||0,can=S.job>=sk.job&&S.kp&&l<sk.max;return `<div class="skc"><img src="assets/${sk.ic}.webp" alt=""${l?'':' style="filter:grayscale(1) brightness(.55)"'}><div class="name">${sk.name}</div><span class="lbl">Lv.${l} / ${sk.max}</span><div class="sub">${sk.desc(l||1)}</div>
       <button class="btn ${can?'gold':''}" data-act="skill" data-k="${sk.id}" ${can?'':'disabled'}>${l>=sk.max?'최대':S.job<sk.job?'전직 필요':'레벨 올리기'}</button></div>`;}).join('')}</div>`;
-    {const B=basicAtk();h+=`<p class="note">기본 공격: 한 번에 최대 <b>${B.n}마리</b> · <b>${B.H}타</b> · 타당 공격력의 ${Math.round(B.per*100)}% (전직할 때마다 대상 +1 · 타격 +1회 · 총 피해 +25%)</p>`;}
+    {const B=basicAtk();h+=`${help(`기본 공격: 한 번에 최대 <b>${B.n}마리</b> · <b>${B.H}타</b> · 타당 공격력의 ${Math.round(B.per*100)}% (전직할 때마다 대상 +1 · 타격 +1회 · 총 피해 +25%)`)}`;}
     if(pasv.length)h+=`<div class="sec">패시브</div><div class="grid2">${pasv.map(sk=>{const l=S.sk[sk.id]||0;return `<div class="item"><div style="min-width:0"><div class="name">${sk.name} <span class="lbl">Lv.${l}/${sk.max}</span></div><div class="sub">${sk.desc(l||1)}</div></div><button class="btn plus" data-act="skill" data-k="${sk.id}" ${S.job>=sk.job&&S.kp&&l<sk.max?'':'disabled'} aria-label="${sk.name} 올리기">+</button></div>`;}).join('')}</div>`;
-    if(S.job===1)h+=`<p class="note">30레벨 2차 전직(${c.jobs[2]})에서 ${c.sk.filter(x=>x.job===2).map(x=>x.name).join(' · ')} 스킬이 열려요.</p>`;}
-    if(S.job>=2&&S.job<4){const n=S.job+1;h+=`<p class="note">${n===3?70:120}레벨 ${n}차 전직(${c.jobs[n]})에서 ${c.sk.filter(x=>x.job===n).map(x=>x.name).join(' · ')} 스킬이 열려요.</p>`;}
-    h+=`<p class="note">공격 스킬 자동 사용과 각성 컷인은 설정에서 켜고 꺼요.</p>`;
+    if(S.job===1)h+=`${help(`30레벨 2차 전직(${c.jobs[2]})에서 ${c.sk.filter(x=>x.job===2).map(x=>x.name).join(' · ')} 스킬이 열려요.`)}`;}
+    if(S.job>=2&&S.job<4){const n=S.job+1;h+=`${help(`${n===3?70:120}레벨 ${n}차 전직(${c.jobs[n]})에서 ${c.sk.filter(x=>x.job===n).map(x=>x.name).join(' · ')} 스킬이 열려요.`)}`;}
+    h+=`${help(`공격 스킬 자동 사용과 각성 컷인은 설정에서 켜고 꺼요.`)}`;
   }else if(tab==='mate'){
     const HIMG=(h,hg)=>`<img src="assets/${HEROES[h.h].k}.webp" alt="" style="height:${hg};width:auto;max-width:92%;object-fit:contain">`;
     const tm=team(),ns=hSlots(),sel=S.heroes.find(h=>h.id===UI.hsel);if(!sel)UI.hsel=0;
-    h+=`<div class="sec">배치</div><div class="sub">보스전에 함께 싸우고, 배치한 동안 능력치가 올라요</div><div class="slots" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(i=>{const x=tm[i];
+    h+=`<div class="sec">배치</div>${help(`보스전에 함께 싸우고, 배치한 동안 능력치가 올라요`)}<div class="slots" style="grid-template-columns:repeat(3,1fr)">${[0,1,2].map(i=>{const x=tm[i];
       return x?`<button class="slot" data-act="hsel" data-k="${x.id}" style="border-color:${HGRADE[x.g].c};align-items:center">${HIMG(x,'9cqh')}<span class="n" style="color:${HGRADE[x.g].c}">${HEROES[x.h].n} Lv.${x.lv}</span><span class="e">${HSTN[HEROES[x.h].st]} +${hBonus(x)}%</span></button>`
         :`<div class="slot" style="align-items:center;justify-content:center;min-height:16cqh"><span class="n" style="color:var(--mute)">${i<ns?'비어 있음':HSLOT[i]+'레벨에 열려요'}</span></div>`;}).join('')}</div>`;
-    {const on=bondOn();h+=`<div class="sec">인연 효과</div><div class="sub">두 동료를 함께 배치하면 켜져요. 둘 중 낮은 등급이 높을수록 강해져요 (일반 ×1 ~ 신화 ×3)</div><div class="bonds">${BONDS.map(B=>{const o=on.find(x=>x.B===B),m=o?o.m:1;
+    {const on=bondOn();h+=`<div class="sec">인연 효과</div>${help(`두 동료를 함께 배치하면 켜져요. 둘 중 낮은 등급이 높을수록 강해져요 (일반 ×1 ~ 신화 ×3)`)}<div class="bonds">${BONDS.map(B=>{const o=on.find(x=>x.B===B),m=o?o.m:1;
       return `<div class="bond${o?' on':''}"><b>${B.n}</b><span class="bh">${B.h.map(i=>HEROES[i].n.split(' ').pop()).join(' + ')}${o?` · <i style="color:${HGRADE[o.g].c};font-style:normal">${HGRADE[o.g].n} ×${m}</i>`:''}</span><span class="be">${B.e.map(([st,v])=>`${HSTN[st]} +${r1(v*m)}%`).join(' · ')}</span></div>`;}).join('')}</div>`;}
     h+=`<div class="row"><div class="sec" style="white-space:nowrap">영웅 뽑기 <span class="lbl">${S.heroes.length} / ${heroMax()}</span></div><div style="display:flex;gap:1cqh;flex-wrap:wrap;justify-content:flex-end">
       <button class="btn" data-act="pull" data-k="1" ${S.gold<pullCost()||S.heroes.length+1>heroMax()?'disabled':''}>1회 ${kor(pullCost())}G</button><button class="btn gold" data-act="pull" data-k="10" ${S.gold<pullCost()*9||S.heroes.length+10>heroMax()?'disabled':''}>10회 ${kor(pullCost()*9)}G</button>
@@ -1774,15 +1791,15 @@ function renderPanel(){memoReset();
     if(UI.pull&&UI.pull.length)h+=`<div class="iopts">${UI.pull.map(x=>`<span style="color:${GRADE[x.g].c};background:rgba(255,255,255,.08)">${GRADE[x.g].n} ${HEROES[x.h].n}</span>`).join('')}</div>`;
     if(sel){const G=HGRADE[sel.g],cap=HCAP[sel.g],on=S.team.includes(sel.id),mt=hMat(sel),pm=hMat(sel,true),full=sel.lv>=cap;
       h+=`<div class="idet" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center">${HIMG(sel,'12cqh')}<div><div class="name" style="color:${G.c}">${G.n} · ${HEROES[sel.h].n}</div>
-        <div class="sub">Lv.${sel.lv} / ${cap}${on?' · 배치 중':''} · 보스전 공격력 내 공격력의 ${Math.round(hPow(sel)*100)}%</div></div></div><button class="btn" data-act="hsel" data-k="0">닫기</button></div>
+        <div class="sub">Lv.${sel.lv} / ${cap}${on?' · 배치 중':''} · 보스전 공격력 내 공격력의 ${Math.round(hPow(sel)*100)}%</div></div></div><div class="hbtns"><button class="pi in" data-act="dinfo" aria-label="도움말">i</button><button class="btn" data-act="hsel" data-k="0">닫기</button></div></div>
         <div class="istat"><b>배치 효과: ${HSTN[HEROES[sel.h].st]} +${hBonus(sel)}%</b></div>
         <div class="ibtns">${!on&&ns&&S.team.length>=ns?team().map(t=>`<button class="btn gold" data-act="hswap" data-k="${t.id}">교체 ↔ ${HEROES[t.h].n.split(' ').pop()} Lv.${t.lv}</button>`).join(''):`<button class="btn gold" data-act="hdep" ${!on&&S.team.length>=ns?'disabled':''}>${on?'배치 해제':ns?'배치':'10레벨에 슬롯이 열려요'}</button>`}<button class="btn" data-act="hlock" aria-pressed="${!!sel.lock}">${sel.lock?'잠금 해제':'잠금'}</button>
           ${full?(sel.g<4?`<button class="btn" data-act="hprom" ${pm?'':'disabled'}>${HGRADE[sel.g+1].n}(으)로 승급${pm?` · 재료: ${HEROES[pm.h].n}`:' · 같은 등급 최대 레벨 동료가 필요해요'}</button>`:'<button class="btn" disabled>최고 등급 · 최대 레벨</button>')
             :`<button class="btn" data-act="hmerge" ${mt?'':'disabled'}>합성 Lv.${sel.lv+1}${mt?` · 재료: ${HEROES[mt.h].n} Lv.${mt.lv}`:' · 같은 등급 동료가 필요해요'}</button>`}</div>
-        <div class="sub">합성: 같은 등급 동료 1명을 재료로 써서 레벨 +1. 승급: 최대 레벨이 되면, 같은 등급의 최대 레벨 동료 1명을 재료로 써서 다음 등급 Lv.1이 돼요. 신화는 뽑기로 나오지 않고 전설 Lv.12 둘을 승급해야만 얻어요. 배치 중이거나 잠근 동료는 합성·자동 합성의 재료로 쓰이지 않아요.</div></div>`;}
+        ${(UI.dHelp=`합성: 같은 등급 동료 1명을 재료로 써서 레벨 +1. 승급: 최대 레벨이 되면, 같은 등급의 최대 레벨 동료 1명을 재료로 써서 다음 등급 Lv.1이 돼요. 신화는 뽑기로 나오지 않고 전설 Lv.12 둘을 승급해야만 얻어요. 배치 중이거나 잠근 동료는 합성·자동 합성의 재료로 쓰이지 않아요.`,'')}</div>`;}
     h+=`<div class="bag">${S.heroes.slice().sort((a,b)=>b.g-a.g||b.lv-a.lv).map(x=>`<button class="cell${UI.hsel===x.id?' on':''}" data-act="hsel" data-k="${x.id}" style="--g:${HGRADE[x.g].c}" aria-label="${HGRADE[x.g].n} ${HEROES[x.h].n}">${HIMG(x,'74%')}<span class="cl" style="color:${HGRADE[x.g].c}">Lv${x.lv}</span>${S.team.includes(x.id)?'<span class="cn">배치</span>':x.lock?'<span class="cn" style="color:#9fe7ff">잠금</span>':''}</button>`).join('')}
       ${S.heroes.length?'':'<span class="sub" style="grid-column:span 6">아직 동료가 없어요. 10레벨에 첫 동료가 합류하고, 골드로 영웅을 뽑을 수 있어요.</span>'}</div>
-      <p class="note">동료는 평소 사냥에는 나오지 않고 <b>보스 스테이지에서만</b> 함께 싸워요. 배치 슬롯은 ${HSLOT.join(' · ')}레벨에 하나씩 열려요. 뽑기 값은 지금 스테이지에 따라 올라요.</p>`;
+      ${help(`동료는 평소 사냥에는 나오지 않고 <b>보스 스테이지에서만</b> 함께 싸워요. 배치 슬롯은 ${HSLOT.join(' · ')}레벨에 하나씩 열려요. 뽑기 값은 지금 스테이지에 따라 올라요.`)}`;
   }else{
     {const D=dayFix(),A=attFix(),w=ddToday(),dot=dailyDot();h+=`<div class="grid2">
       <div class="item" style="border-color:var(--gold)"><div style="min-width:0"><div class="name">오늘의 임무 · 출석${dot?' <span style="color:#ff6b7d">● 받을 보상</span>':''}</div><div class="sub">임무 ${DMIS.filter(m=>D[m.k]>=m.need).length} / ${DMIS.length} · 출석 ${A.n}일째</div></div><button class="btn gold" data-act="goto" data-k="daily">열기</button></div>
@@ -1804,7 +1821,7 @@ function renderPanel(){memoReset();
     h+=`<div class="item"><div><div class="name">${DG().name} 몬스터 처치 #${S.q.no}</div><div class="sub">${S.q.n} / ${S.q.need}마리 · 보상 ${kor(rw)}G + 포션 3개</div></div>
     <button class="btn ${done?'gold':''}" data-act="quest" ${done?'':'disabled'}>${done?'보상 받기':'진행 중'}</button></div>`;
   }
-  {const pe=$('#panel'),st=pe.scrollTop;pe.innerHTML=h;pe.scrollTop=st;}dirty=false;
+  {const pe=$('#panel'),st=pe.scrollTop;pe.innerHTML=h;pe.scrollTop=st;}dirty=false;$('#popI').hidden=!HELP.length;UI.help=HELP.slice();
 }
 function openPop(t){if(tab===t)return closePop();tab=t;UI.setCat='';UI.msel=false;UI.mpick=[];resetArm=false;$('#popT').textContent=TITLES[t];$('#pop').hidden=false;
   document.querySelectorAll('.menu button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.tab===({skin:'char',shop:'town',daily:'town',dday:'town'}[t]||t)));$('#bG').setAttribute('aria-pressed',t==='set');$('#pop').classList.toggle('wide',t==='equip');UI.sel=0;renderPanel();$('#panel').scrollTop=0;}
@@ -1832,6 +1849,7 @@ function mirrorPos(){const sr=stEl.getBoundingClientRect();MOV.forEach(sel=>{con
   S.opt.pos[sel]={x:+((sr.right-r.right)/sr.width*100).toFixed(2),y:+((r.top-sr.top)/sr.height*100).toFixed(2)};});applyPos();save();}
 document.querySelectorAll('.menu button').forEach(b=>b.addEventListener('click',()=>openPop(b.dataset.tab)));
 $('#popX').addEventListener('click',closePop);
+$('#popI').addEventListener('click',()=>{sfx('click');UI.infoTxt=UI.help||[];queueModal(infoModal);});
 $('#panel').addEventListener('click',e=>{
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const a=b.dataset.act,k=b.dataset.k;
   if(a==='opt'||a==='vol')return; /* 스위치·슬라이더는 change/input에서 처리 (여기서 다시 그리면 값이 되돌아간다) */
@@ -1869,6 +1887,7 @@ $('#panel').addEventListener('click',e=>{
   else if(a==='mgrade'){const g=+k,ids=S.bag.filter(x=>x.g===g&&!(S.eq[x.k]&&iScore(x)>iScore(S.eq[x.k])&&S.lv>=iLv(x))).map(x=>x.id),all=ids.length&&ids.every(id=>UI.mpick.includes(id));UI.mpick=all?UI.mpick.filter(id=>!ids.includes(id)):[...new Set([...UI.mpick,...ids])];}
   else if(a==='msalv'){let n=0,v=0;for(const it of S.bag.filter(x=>UI.mpick.includes(x.id))){v+=salvage(it);n++;}UI.mpick=[];UI.msel=false;if(n){sfx('loot');flash(`${n}개 분해 +${kor(v)}G`,'#f2c14e');}}
   else if(a==='goto'){sfx('click');tab=null;openPop(k);return;}
+  else if(a==='dinfo'){sfx('click');UI.infoTxt=[UI.dHelp||''];queueModal(infoModal);return;}
   else if(a==='xbuy'){if(XP[k]&&xN(k)<XP[k].max){UI.xAsk=k;queueModal(xModal);}return;}
   else if(a==='att'){attClaim();}
   else if(a==='dmis'){dmisClaim(k);}
@@ -1928,6 +1947,9 @@ const st=$('#stage');
 if(st.requestFullscreen&&document.fullscreenEnabled){const bf=$('#bF');bf.hidden=false;
   bf.addEventListener('click',()=>{(document.fullscreenElement?document.exitFullscreen():st.requestFullscreen()).catch(()=>{});});}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
+/* 왼쪽 위 프로필을 누르면 캐릭터 창 */
+cv.addEventListener('click',e=>{if(editing||selecting)return;const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
+  if(x>=6&&x<=254&&y>=2&&y<=66){sfx('click');if(tab==='char')closePop();else{tab=null;openPop('char');}}});
 const keys={};
 const actOf=k=>{const K=S.opt.keys;for(const a in K)if(K[a]===k)return a;return null;};
 /* 입력칸(쿠폰·저장 코드)에 글자를 치는 중에는 게임 단축키로 가로채지 않는다 */
@@ -1958,8 +1980,8 @@ function syncButtons(){sideBg();
   $('#potN').textContent=potSum(HPK);$('#mpN').textContent=potSum(MPK);$('#potB').classList.toggle('low',potSum(HPK)<=0);$('#atkKey').textContent=keyName(S.opt.keys.atk||'z');
   $('#bA').setAttribute('aria-pressed',S.autoSkill);
   {const q=mqFix(),rp=S.q.n>=S.q.need,mOk=mqDone(),main=q.ch<STORY.length&&(mOk||!rp),m=$('#mis');m.dataset.main=main?1:'';
-   if(main){const [gt,gp]=mqGoal(),[rg,rpn]=mqRw();m.classList.toggle('done',mOk);$('#misT').textContent=`메인 ${q.ch+1}장 · ${STORY[q.ch].t}`;$('#misP').textContent=mOk?`완료! 경험치 ${kor(rpn)} + ${kor(rg)}G`:gt;$('#misB').style.width=(mOk?100:gp*100)+'%';}
-   else{m.classList.toggle('done',rp);$('#misT').textContent=`의뢰 ${S.q.no} · ${DG().name}`;$('#misP').textContent=rp?`완료! 보상 ${kor(qRw())}G + 포션 3개`:`몬스터 처치 ${S.q.n} / ${S.q.need}`;$('#misB').style.width=Math.min(100,S.q.n/S.q.need*100)+'%';}}
+   if(main){const [gt,gp]=mqGoal(),[rg,rpn]=mqRw();m.classList.toggle('done',mOk);$('#misT').textContent=`메인 ${q.ch+1}장 · ${STORY[q.ch].t}`;$('#misP').textContent=mOk?`완료! 경험치 ${korS(rpn)} · ${korS(rg)}G`:gt;$('#misB').style.width=(mOk?100:gp*100)+'%';}
+   else{m.classList.toggle('done',rp);$('#misT').textContent=`의뢰 ${S.q.no} · ${DG().name}`;$('#misP').textContent=rp?`완료! ${korS(qRw())}G · 포션 3개`:`몬스터 처치 ${S.q.n} / ${S.q.need}`;$('#misB').style.width=Math.min(100,S.q.n/S.q.need*100)+'%';}}
   $('#mGrow').classList.toggle('dot',TRN.some(T=>trLv(T.k)<trCap(T)&&S.gold>=trCost(trLv(T.k))*3));$('#mInv').classList.toggle('dot',S.bag.some(it=>S.eq[it.k]&&iScore(it)>iScore(S.eq[it.k])&&S.lv>=iLv(it)));
   $('#mChar').classList.toggle('dot',S.sp>0);$('#mTown').classList.toggle('dot',dailyDot());$('#mSkill').classList.toggle('dot',S.kp>0&&C().sk.some(k=>(k.job===0?S.job===0:k.job<=S.job)&&(S.sk[k.id]||0)<k.max));
 }
@@ -1977,6 +1999,8 @@ $('#mcard').addEventListener('click',e=>{const b=e.target.closest('button');if(!
   if(b.dataset.act==='godg'){nextModal();goDungeon(S.maxDg);return;}
   if(b.dataset.act==='xok'){xBuy(UI.xAsk);nextModal();memoReset();renderPanel();return;}
   nextModal();});
+/* 도움말 창 */
+function infoModal(){return `<h2>도움말</h2><div class="itxt">${(UI.infoTxt||[]).map(t=>`<p>${t}</p>`).join('')}</div><button data-act="ok">확인</button>`;}
 /* 보관함 확장 확인 창 */
 function xModal(){const k=UI.xAsk,X=XP[k],c=xCost(k),ok=S.gold>=c;
   return `<h2>${X.n} 확장</h2><p>${X.n}을 <b>${xMax(k)}칸 → ${xMax(k)+X.step}칸</b>으로 늘릴까요?</p><p>비용 <b style="color:#ffe08a">${kor(c)} G</b> · 보유 ${kor(S.gold)} G${ok?'':'<br><span style="color:#ff8a8a">골드가 부족해요</span>'}</p>
@@ -2052,6 +2076,3 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
 requestAnimationFrame(loop);
 })();
 </script>
-
-</body>
-</html>
