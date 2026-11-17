@@ -1764,7 +1764,7 @@ function renderPanel(){memoReset();HELP=[];
       const pw0=power(),pdf=eq?0:(()=>{S.eq[sel.k]=sel;memoReset();const a=power();S.eq[sel.k]=cur;memoReset();return a-pw0;})();
       h+=`<div class="ovl" data-act="isel" data-k="0"><div class="idet" data-act="noop" style="border-color:${G.c}"><div class="row"><div style="display:flex;gap:2cqh;align-items:center"><div class="dslot" style="width:13cqh;--g:${G.c}">${IMGS(sel,'66%')}</div><div><div class="sub">${G.n} ${SLOT[sel.k].slot}${eq?' · 장착 중':''}</div><div class="name" style="color:${G.c};font-size:3.6cqh">${iName(sel)}${sel.amp?` +${sel.amp}`:''}</div>
         <div class="sub">${iLv(sel)}레벨부터 장착 · 품질 ${Math.round(sel.q*100)}%</div></div></div><div class="hbtns"><button class="pi in" data-act="dinfo" aria-label="도움말">i</button><button class="btn" data-act="isel" data-k="0" aria-label="닫기">닫기</button></div></div>
-        <div class="istat"><b>${SLOT[sel.k].stat} +${kor(iMain(sel))}${pc}</b>${df?`<span style="color:${df>0?'#58d08a':'#ff8a8a'}">${df>0?'▲':'▼'} ${kor(Math.abs(SLOT[sel.k].pct?r1(df):Math.round(df)))}${pc}</span>`:''}</div>
+        <div class="istat"><b>${SLOT[sel.k].stat} +${kor(iMain(sel))}${pc}</b>${sel.amp?(()=>{const f=v=>SLOT[sel.k].pct?r1(v):Math.round(v),b0=f(iRaw(sel)/(1+sel.amp*0.06)),a0=f(iMain(sel)-b0);return `<span class="lbl">(기본 ${kor(b0)}${pc} + 증폭 ${kor(a0)}${pc})</span>`;})():''}${df?`<span style="color:${df>0?'#58d08a':'#ff8a8a'}">${df>0?'▲':'▼'} ${kor(Math.abs(SLOT[sel.k].pct?r1(df):Math.round(df)))}${pc}</span>`:''}</div>
         ${eq?'':`<div class="pwdf" style="color:${pdf>0?'#58d08a':pdf<0?'#ff8a8a':'#cfcdf0'}">전투력 ${pdf>0?'▲ '+kor(pdf):pdf<0?'▼ '+kor(-pdf):'변화 없음'}</div>`}
         ${sel.o.length?`<div class="iopts one">${sel.o.map(x=>{const og=optG(x);return `<span style="border:.3cqh solid ${GRADE[og].c};color:${og?GRADE[og].c:'#e8e6ff'};background:${['rgba(255,255,255,.07)','rgba(86,170,255,.2)','rgba(178,110,255,.22)','rgba(255,190,60,.24)'][og]}"><i>${GRADE[og].n}</i>${OPT[x[0]].n} +${x[1]}%</span>`;}).join('')}</div>`:'<div class="sub">추가 옵션 없음 (레어 1개 · 유니크 2개 · 전설 3개)</div>'}
         <div class="ibtns"><button class="btn" data-act="iamp" ${sel.amp>=AMPMAX||S.gold<ampCost(sel)?'disabled':''}>${sel.amp>=AMPMAX?'증폭 최대':`증폭 +${sel.amp+1} · ${kor(ampCost(sel))}G · 성공 ${AMPP[sel.amp]}%`}</button>
@@ -2086,7 +2086,7 @@ function loop(now){
 applyOpt();syncButtons();
 booting=false;showSelect();
 /* 새 버전 알림: 배포된 페이지의 VER가 지금과 다르면 위쪽에 업데이트 버튼을 띄운다(요요 거너와 같은 방식) */
-const VER='2026.11.17-2';
+const VER='2026.11.17-3';
 function checkUpdate(){if(!/github\.io$/.test(location.hostname))return;try{fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(tx=>{const m=tx.match(/const VER='([^']+)'/);
   if(m&&m[1]!==VER&&!document.getElementById('updBar')){const d=document.createElement('button');d.id='updBar';d.textContent='새 버전이 나왔어요 · 눌러서 업데이트';
     d.onclick=()=>{try{save();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));};$('#stage').appendChild(d);}}).catch(()=>{});}catch(e){}}
