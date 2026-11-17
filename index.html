@@ -454,6 +454,8 @@ $('#skipRot').addEventListener('click',()=>{document.body.classList.add('skip');
 
 /* 발판: 0=바닥, 위로 85px씩 */
 const F=[{y:360,x1:0,x2:800},{y:282,x1:70,x2:470},{y:206,x1:330,x2:730},{y:132,x1:90,x2:480}];
+/* 원거리 기본 공격이 닿는 위아래 범위: 바로 위·아래 한 층까지(층 간격 약 75) */
+const RNGY=95;
 
 const WEAPONS=[{lv:1,atk:5},{lv:5,atk:12},{lv:10,atk:24},{lv:15,atk:40},{lv:20,atk:62},{lv:25,atk:110},{lv:30,atk:170},{lv:35,atk:250},{lv:40,atk:360}];
 for(let i=9;i<25;i++)WEAPONS.push({lv:i*5,atk:Math.round(360*Math.pow(1.9,i-8))});
@@ -1214,7 +1216,7 @@ function ai(dt){
       const hr=P.hp/maxHp(),cap=hr<0.4?0:hr<0.65?1:3;
       for(const m of mobs){if(m.dead)continue;const c=Math.abs(m.x-P.x)+Math.abs(m.f-P.f)*170+(m.f>cap?2000:0);if(c<bc){bc=c;best=m;}}P.tgt=best;}
     if(!P.tgt)return;tf=P.tgt.f;tx=P.tgt.x;
-    if(C().rng>100&&tf!==P.f&&Math.abs(F[tf].y-P.y)<=160&&Math.abs(tx-P.x)<C().rng*0.8){P.face=Math.sign(tx-P.x)||P.face;return;}
+    if(C().rng>100&&tf!==P.f&&Math.abs(F[tf].y-P.y)<=RNGY&&Math.abs(tx-P.x)<C().rng*0.8){P.face=Math.sign(tx-P.x)||P.face;return;}
   }
   if(tf===P.f){const dx=tx-P.x;if(Math.abs(dx)>(mode==='boss'?6:(C().rng>100?C().rng*0.65:30)))walk(Math.sign(dx),dt,160);else P.face=mode==='boss'?(P.x>boss.x+boss.w/2?-1:1):(Math.sign(dx)||1);}
   else if(tf>P.f){const n=F[P.f+1],gx=clamp(tx,n.x1+18,n.x2-18);
@@ -1353,7 +1355,7 @@ function update(dt){memoReset();
     const far=c.rng>100,bd=boss?Math.max(boss.x-P.x,P.x-boss.x-boss.w,0):0;
     /* 원거리(궁수·마법사)는 다른 층에 있어도 사거리 안이면 맞힌다 */
     const t=mode==='boss'?(boss&&P.gr&&(P.f===0||far)&&bd<c.rng?[boss]:[])
-      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&(m.f===P.f||(far&&Math.abs(F[m.f].y-P.y)<=160))&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,BA.n);
+      :mobs.filter(m=>!m.dead&&m.born<=0&&P.gr&&(m.f===P.f||(far&&Math.abs(F[m.f].y-P.y)<=RNGY))&&Math.abs(m.x-P.x)<c.rng).sort((a,b)=>Math.abs(a.x-P.x)-Math.abs(b.x-P.x)).slice(0,BA.n);
     if(t.length){P.atkT=c.aspd*(1-Math.min(0.5,pas('aspd')));P.anim=P.animD=c.ad;
       const t0=t[0];P.face=Math.sign(tgtX(t0)-P.x)||P.face;
       const px=P.x,py=P.y,fc=P.face;
@@ -2084,7 +2086,7 @@ function loop(now){
 applyOpt();syncButtons();
 booting=false;showSelect();
 /* 새 버전 알림: 배포된 페이지의 VER가 지금과 다르면 위쪽에 업데이트 버튼을 띄운다(요요 거너와 같은 방식) */
-const VER='2026.11.17-1';
+const VER='2026.11.17-2';
 function checkUpdate(){if(!/github\.io$/.test(location.hostname))return;try{fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(tx=>{const m=tx.match(/const VER='([^']+)'/);
   if(m&&m[1]!==VER&&!document.getElementById('updBar')){const d=document.createElement('button');d.id='updBar';d.textContent='새 버전이 나왔어요 · 눌러서 업데이트';
     d.onclick=()=>{try{save();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));};$('#stage').appendChild(d);}}).catch(()=>{});}catch(e){}}
