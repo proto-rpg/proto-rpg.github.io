@@ -668,8 +668,8 @@ const shopPrice=t=>Math.round(tierGold(t)*300+150);
 function shopBuy(k,t){t=+t;if(!shopTiers().includes(t)||!SLOT[k])return false;const it=shopItem(k,t),cur=S.eq[k],c=shopPrice(t);
   if(S.gold<c||S.bag.length>=bagMax()||(cur&&iScore(it)<=iScore(cur)))return false;S.gold-=c;it.id=++S.iid;gainItem(it);return true;}
 /* 쿠폰: 코드 → 골드. rep이 있으면 여러 번 쓸 수 있다(시험용) */
-const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1},SUMMER:{skin:'s1'},JO1:{g:1e12},LEGEND120:{set:24},LEGEND1:{set:0}};
-/* LEGEND120·LEGEND1: 전설 장비 6부위 세트(120레벨제·1레벨제) — 품질 최대, 증폭 +10, 옵션 3줄 모두 전설 등급 최고치(공격력·치명타 확률·치명타 피해) */
+const COUPON={WELCOME:{g:1e5},PROTO:{g:1e6},KAISER:{g:1e7},GOLDRUSH:{g:1e8},TESTGOLD:{g:1e9,rep:1},SUMMER:{skin:'s1'},JO1:{g:1e12},LEGEND120:{set:24},LEGEND10:{set:2}};
+/* LEGEND120·LEGEND10: 전설 장비 6부위 세트(120레벨제·10레벨제) — 품질 최대, 증폭 +10, 옵션 3줄 모두 전설 등급 최고치(공격력·치명타 확률·치명타 피해) */
 const maxItem=(k,t)=>({id:++S.iid,k,t,g:3,q:1.12,amp:AMPMAX,o:['atkPct','crit','critDmg'].map(o=>[o,optR(o,3)[1],3])}); /* SUMMER: 여름 휴가 스킨 네 부위를 모두 준다 */
 /* 금액별 1회용 쿠폰 3장씩: MAN100A(100만) · MAN1000A(1,000만) · EOK1A(1억) · EOK10A(10억) · EOK100A(100억) · EOK1000A(1,000억) */
 [['MAN100',1e6],['MAN1000',1e7],['EOK1',1e8],['EOK10',1e9],['EOK100',1e10],['EOK1000',1e11]].forEach(([n,g])=>['A','B','C'].forEach(x=>COUPON[n+x]={g}));
@@ -2086,7 +2086,7 @@ function loop(now){
 applyOpt();syncButtons();
 booting=false;showSelect();
 /* 새 버전 알림: 배포된 페이지의 VER가 지금과 다르면 위쪽에 업데이트 버튼을 띄운다(요요 거너와 같은 방식) */
-const VER='2026.11.17-3';
+const VER='2026.11.17-4';
 function checkUpdate(){if(!/github\.io$/.test(location.hostname))return;try{fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(tx=>{const m=tx.match(/const VER='([^']+)'/);
   if(m&&m[1]!==VER&&!document.getElementById('updBar')){const d=document.createElement('button');d.id='updBar';d.textContent='새 버전이 나왔어요 · 눌러서 업데이트';
     d.onclick=()=>{try{save();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));};$('#stage').appendChild(d);}}).catch(()=>{});}catch(e){}}
