@@ -1058,15 +1058,21 @@ function spawn(){
     else{m.hp=m.max=m.hp*5;m.atk=Math.round(m.atk*1.4);m.h=Math.round(m.h*1.35);m.elite=1;m.gold*=2;m.exp*=2;}}
 }
 function stackY(t,base){if(t.stk.t<=0)t.stk.n=0;const y=base-t.stk.n*19;t.stk.n=(t.stk.n+1)%7;t.stk.t=0.45;return y;}
+/* 한 번의 공격에서 정해진 타수는 몹이 먼저 죽어도 데미지 숫자를 끝까지 보여준다(메이플 방식) */
+const ovk=m=>!!m&&!m.w&&m.dead&&m.ovT>performance.now();
+const hitOK=m=>alive(m)||ovk(m);
 function hit(t,r,col){
-  if(!t||t.dead||(t.w&&t!==boss))return;
+  if(!t||(t.w&&t!==boss))return;
+  if(t.dead){if(!ovk(t))return;const tx=t.x,ty=F[t.f].y-(t.h||30)-14;
+    if(fx.length<70)fx.push({spark:1,x:tx+(Math.random()*24-12),y:ty+26,r:Math.random()*6.3,big:r.c,t:0.2,m:0.2});
+    if(S.opt.dmg)addText(kor(r.d),tx+(Math.random()*16-8),stackY(t,ty),'#ff9a2e',r.c,0,r.c?2:1);return;}
   t.hp-=r.d;t.hurt=0.12;
   const isB=t===boss,tx=isB?t.x+t.w/2:t.x,ty=isB?F[0].y-t.h-14:F[t.f].y-(t.h||30)-14;
   sfx(r.c?'crit':'hit');if(fx.length<70)fx.push({spark:1,x:tx+(Math.random()*24-12),y:ty+26+(Math.random()*16-8),r:Math.random()*6.3,big:r.c,t:0.2,m:0.2});
   if(S.opt.dmg)addText(kor(r.d),tx+(Math.random()*16-8),stackY(t,ty),'#ff9a2e',r.c,0,r.c?2:1);
   if(t.hp<=0){
     if(isB)return endBoss(true);
-    t.dead=true;sfx('kill');S.tk=(S.tk||0)+1;dayFix().kill++;if(S.mq&&S.mq.st===0&&S.mq.ch===S.dg)S.mq.n++;combo++;comboT=3;comboP=0.18;if(fx.length<70)fx.push({coin:1,x:t.x,y:F[t.f].y-22,t:0.55,m:0.55});
+    t.dead=true;t.ovT=performance.now()+900;sfx('kill');S.tk=(S.tk||0)+1;dayFix().kill++;if(S.mq&&S.mq.st===0&&S.mq.ch===S.dg)S.mq.n++;combo++;comboT=3;comboP=0.18;if(fx.length<70)fx.push({coin:1,x:t.x,y:F[t.f].y-22,t:0.55,m:0.55});
     const g=Math.round(t.gold*goldMul());S.gold+=g;gainExp(t.exp);if(S.kills<10&&!ddR)S.kills++;
     if(ddR){ddR.n++;ddR.g+=g;ddR.e+=Math.round(t.exp*(1+optSum('expPct')));}
     if(S.q.n<S.q.need)S.q.n++;
@@ -1283,12 +1289,12 @@ function tryCast(n,force){
   fire();
 }
 function doSkill(s,t,mult){
-  const px=P.x,py=P.y-30,col=s.col,go=delay=>setTimeout(()=>t.forEach(m=>{if(alive(m))hit(m,rollDmg(mult),col);}),delay);
+  const px=P.x,py=P.y-30,col=s.col,go=delay=>setTimeout(()=>t.forEach(m=>{if(hitOK(m))hit(m,rollDmg(mult),col);}),delay);
   const multi=(t.length===1&&t[0].w&&s.multi)?Array(Math.ceil(s.multi/2)).fill(t[0]):t;
   switch(s.kind){
     case 'nova':fx.push({strike:1,R:s.R,x:px,y:py,t:0.55,m:0.55});for(let k=0;k<s.hits;k++)go(k*110);break;
     case 'whirl':fx.push({whirl:1,x:px,y:py,t:0.9,m:0.9});
-      for(let k=0;k<s.hits;k++)setTimeout(()=>{if(k%2===0){P.anim=P.animD=0.3;P.face*=-1;}t.forEach(m=>{if(alive(m))hit(m,rollDmg(mult),col);});},k*120);break;
+      for(let k=0;k<s.hits;k++)setTimeout(()=>{if(k%2===0){P.anim=P.animD=0.3;P.face*=-1;}t.forEach(m=>{if(hitOK(m))hit(m,rollDmg(mult),col);});},k*120);break;
     case 'rain':fx.push({rain:1,x:px+P.face*170,y:P.y,w:330,t:0.85,m:0.85});for(let k=0;k<s.hits;k++)go(160+k*130);break;
     case 'line':{const fl=F[P.f],x1=P.face>0?(mode==='boss'&&boss?boss.x+boss.w:fl.x2):(mode==='boss'&&boss&&P.x>boss.x?boss.x:fl.x1);
       fx.push({beam:1,x0:px+P.face*14,x1,y:py,t:0.55,m:0.55});for(let k=0;k<s.hits;k++)go(60+k*70);break;}
@@ -1307,10 +1313,10 @@ function doSkill(s,t,mult){
       if(t.length)fx.push({proj:1,k:'orb',x0:px+P.face*14,y0:py-4,x1:t.cx,y1:t.cy,t:0.12,m:0.12,c:col});for(let k=0;k<s.hits;k++)go(130+k*120);break;
     case 'meteor':multi.forEach((m,i)=>{const x=tgtX(m),y=tgtY(m)+(m.w?(i%3-1)*20:0);
       setTimeout(()=>fx.push({meteor:1,x,y,t:0.6,m:0.6}),i*90);
-      setTimeout(()=>{if(alive(m)){shake=0.18;for(let k=0;k<s.hits;k++)hit(m,rollDmg(mult),col);}},i*90+430);});break;
+      setTimeout(()=>{if(hitOK(m)){shake=0.18;for(let k=0;k<s.hits;k++)hit(m,rollDmg(mult),col);}},i*90+430);});break;
     case 'stars':multi.forEach((m,i)=>{for(let k=0;k<s.hits;k++){const dl=i*40+k*110;
-      setTimeout(()=>{if(alive(m))fx.push({proj:1,k:'star',x0:P.x+P.face*10,y0:P.y-34,x1:tgtX(m),y1:tgtY(m),t:0.12,m:0.12,c:col});},dl);
-      setTimeout(()=>{if(alive(m))hit(m,rollDmg(mult),col);},dl+120);}});break;
+      setTimeout(()=>{if(hitOK(m))fx.push({proj:1,k:'star',x0:P.x+P.face*10,y0:P.y-34,x1:tgtX(m),y1:tgtY(m),t:0.12,m:0.12,c:col});},dl);
+      setTimeout(()=>{if(hitOK(m))hit(m,rollDmg(mult),col);},dl+120);}});break;
     case 'dash':{const fl=F[P.f];let x1=clamp(px+P.face*220,fl.x1+14,fl.x2-14);if(mode==='boss'&&boss){if(px<boss.x)x1=Math.min(x1,boss.x-14);else x1=Math.max(x1,Math.min(W-14,boss.x+boss.w+14));}
       fx.push({dash:1,x0:px,x1,y:P.y,t:0.45,m:0.45});P.x=x1;P.manual=0.4;for(let k=0;k<s.hits;k++)go(80+k*90);break;}
   }
@@ -1346,9 +1352,9 @@ function update(dt){memoReset();
     if(t.length){P.atkT=c.aspd*(1-Math.min(0.5,pas('aspd')));P.anim=P.animD=c.ad;
       const t0=t[0];P.face=Math.sign(tgtX(t0)-P.x)||P.face;
       const px=P.x,py=P.y,fc=P.face;
-      for(let k=0;k<BA.H;k++){const go=()=>t.forEach((m,n)=>{if(!alive(m))return;
+      for(let k=0;k<BA.H;k++){const go=()=>t.forEach((m,n)=>{if(!hitOK(m))return;
           if(c.shot){if(fx.length<90)fx.push({proj:1,k:c.shot,x0:px+fc*14,y0:py-34,x1:tgtX(m),y1:tgtY(m),t:0.14,m:0.14,c:c.col});
-            setTimeout(()=>{if(!alive(m))return;hit(m,rollDmg(BA.per));
+            setTimeout(()=>{if(!hitOK(m))return;hit(m,rollDmg(BA.per));
               if(c.splash&&!m.w&&n===0)mobs.forEach(o=>{if(o!==m&&!t.includes(o)&&alive(o)&&o.f===m.f&&Math.abs(o.x-m.x)<c.splash)hit(o,rollDmg(BA.per*0.6));});},140);}
           else hit(m,rollDmg(BA.per));});
         if(k)setTimeout(go,k*gap);else go();}}
