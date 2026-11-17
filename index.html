@@ -239,6 +239,7 @@ button.slot{text-align:left;color:inherit;font:inherit;cursor:pointer}
 .ovl{background:rgba(10,8,30,.72);border-radius:2.6cqh}.ovl .idet{background:linear-gradient(#3a3178,#1f1c47);border-width:.4cqh}
 .iopts span{background:rgba(255,207,74,.16);border:1px solid rgba(255,207,74,.4);color:#ffe08a}
 .iopts.one{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1cqh}.iopts.one span{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:2.3cqh;line-height:1.25;padding:.5cqh .6cqh;border-radius:1.4cqh}
+#updBar{position:absolute;left:50%;top:13cqh;transform:translateX(-50%);z-index:60;padding:1.4cqh 3.2cqh;border-radius:99px;border:.4cqh solid #fff3c4;background:linear-gradient(#ffe08a,#e8a93a);color:#3b2400;font:700 3cqh/1 var(--f-body,'Gothic A1'),sans-serif;box-shadow:0 .6cqh 0 #7a4a10,0 0 3cqh rgba(255,214,120,.7);animation:updP 1.2s ease-in-out infinite;white-space:nowrap;cursor:pointer}@keyframes updP{50%{transform:translateX(-50%) scale(1.06)}}
 .pi{width:4.6cqh;height:4.6cqh;border-radius:50%;border:.3cqh solid #cfc8ff;background:rgba(255,255,255,.08);color:#fff;font:700 2.8cqh/1 Georgia,'Times New Roman',serif;font-style:italic;display:flex;align-items:center;justify-content:center;padding:0;flex:none}
 .pop .pi#popI{position:absolute;right:6.6cqh;top:-1.2cqh;z-index:3;background:linear-gradient(#5b4fc4,#2d266e);border-color:var(--trim,#e8b548)}
 .hbtns{display:flex;gap:1.2cqh;align-items:center}
@@ -2082,7 +2083,13 @@ function loop(now){
 }
 applyOpt();syncButtons();
 booting=false;showSelect();
-document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+/* 새 버전 알림: 배포된 페이지의 VER가 지금과 다르면 위쪽에 업데이트 버튼을 띄운다(요요 거너와 같은 방식) */
+const VER='2026.11.17-1';
+function checkUpdate(){if(!/github\.io$/.test(location.hostname))return;try{fetch(location.pathname+'?vc='+Date.now(),{cache:'no-store'}).then(r=>r.text()).then(tx=>{const m=tx.match(/const VER='([^']+)'/);
+  if(m&&m[1]!==VER&&!document.getElementById('updBar')){const d=document.createElement('button');d.id='updBar';d.textContent='새 버전이 나왔어요 · 눌러서 업데이트';
+    d.onclick=()=>{try{save();}catch(e){}location.replace(location.pathname+'?v='+encodeURIComponent(m[1]));};$('#stage').appendChild(d);}}).catch(()=>{});}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();else checkUpdate();});
+checkUpdate();setInterval(checkUpdate,5*60e3);
 requestAnimationFrame(loop);
 })();
 </script>
